@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "declaration": true,
+    "target": "ESNext",
+    "lib": [
+      "esnext",
+      "dom",
+      "DOM.Iterable"
+    ],
+    "strict": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "outDir": "lib",
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "rootDir": "src",
+    "emitDeclarationOnly": true,
+    "strictPropertyInitialization": false,
+    "experimentalDecorators": true,
+    "useDefineForClassFields": false,
+  },
+  "include": [
+    "src/**/*",
+    "lib/index.d.ts"
+  ]
+}
