@@ -12,4 +12,4 @@ RUN curl -sL https://deb.nodesource.com/setup_14.x | bash - \
 
 COPY ./ ./
 
-CMD ["/bin/bash", "/app/run.sh"]
+CMD ["/bin/bash", "/app/endpoint_dev.sh"]
