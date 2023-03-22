@@ -1,6 +1,10 @@
 import { Channel, Socket } from "phoenix";
 import { uuid } from "./utils";
 
+export interface ChannelTopic extends Channel {
+  topic: string;
+}
+
 export default class Data {
   #socket!: Socket;
   #channels = new Map<string, Channel>();
@@ -44,5 +48,16 @@ export default class Data {
     session.join();
 
     return session;
+  }
+
+  public static stopSession(channel: Channel): void {
+    const _channel = channel as ChannelTopic;
+    const identifier = _channel.topic;
+    const session = Data.instance.#channels.get(identifier);
+
+    if (session) {
+      session.leave();
+      Data.instance.#channels.delete(identifier);
+    }
   }
 }

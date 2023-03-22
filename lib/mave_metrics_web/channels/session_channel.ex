@@ -70,41 +70,41 @@ defmodule MaveMetricsWeb.SessionChannel do
     {:noreply, socket}
   end
 
-  @impl true
-  def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "bitrate" => bitrate, "width" => width, "height" => height, "codec" => codec, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
-    create_event(params, socket)
+  # @impl true
+  # def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "bitrate" => bitrate, "width" => width, "height" => height, "codec" => codec, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
+  #   create_event(params, socket)
 
-    timestamp = DateTime.from_unix!(timestamp, :millisecond)
+  #   timestamp = DateTime.from_unix!(timestamp, :millisecond)
 
-    params = %{
-      source_url: source_url,
-      bitrate: bitrate,
-      width: width,
-      height: height,
-      codec: codec,
-      session_id: session_id,
-      timestamp: timestamp
-    }
+  #   params = %{
+  #     source_url: source_url,
+  #     bitrate: bitrate,
+  #     width: width,
+  #     height: height,
+  #     codec: codec,
+  #     session_id: session_id,
+  #     timestamp: timestamp
+  #   }
 
-    Stats.create_source(params)
+  #   Stats.create_source(params)
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
-  @impl true
-  def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
-    create_event(params, socket)
+  # @impl true
+  # def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
+  #   create_event(params, socket)
 
-    timestamp = DateTime.from_unix!(timestamp, :millisecond)
+  #   timestamp = DateTime.from_unix!(timestamp, :millisecond)
 
-    Stats.create_source(%{
-      source_url: source_url,
-      session_id: session_id,
-      timestamp: timestamp
-    })
+  #   Stats.create_source(%{
+  #     source_url: source_url,
+  #     session_id: session_id,
+  #     timestamp: timestamp
+  #   })
 
-    {:noreply, socket}
-  end
+  #   {:noreply, socket}
+  # end
 
   @impl true
   def handle_in("event", params, socket) do

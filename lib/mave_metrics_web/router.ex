@@ -18,7 +18,9 @@ defmodule MaveMetricsWeb.Router do
     pipe_through :api
 
     post "/views", API.ViewsController, :views
+    get "/views", API.ViewsController, :get_views
     post "/engagement", API.EngagementController, :engagement
+    get "/engagement", API.EngagementController, :get_engagement
   end
 
   scope "/", MaveMetricsWeb do

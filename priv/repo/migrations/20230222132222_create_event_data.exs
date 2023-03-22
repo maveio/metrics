@@ -56,21 +56,21 @@ defmodule MaveMetrics.Repo.Migrations.CreateEventData do
 
     # sources
 
-    create_if_not_exists table(:sources, primary_key: false) do
-      add :timestamp, :utc_datetime_usec, null: false, primary_key: true
-      add :session_id, references(:sessions), null: false, primary_key: true
+    # create_if_not_exists table(:sources, primary_key: false) do
+    #   add :timestamp, :utc_datetime_usec, null: false, primary_key: true
+    #   add :session_id, references(:sessions), null: false, primary_key: true
 
-      add :source_url, :map, null: false
+    #   add :source_url, :map, null: false
 
-      add :bitrate, :int
-      add :width, :int
-      add :height, :int
-      add :codec, :string
-    end
+    #   add :bitrate, :int
+    #   add :width, :int
+    #   add :height, :int
+    #   add :codec, :string
+    # end
 
-    create_if_not_exists index(:sources, [:session_id])
-    create_if_not_exists unique_index(:sources, [:session_id, :timestamp])
-    create_hypertable(:sources, :timestamp)
+    # create_if_not_exists index(:sources, [:session_id])
+    # create_if_not_exists unique_index(:sources, [:session_id, :timestamp])
+    # create_hypertable(:sources, :timestamp)
 
     # tracks
 

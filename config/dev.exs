@@ -8,7 +8,7 @@ config :mave_metrics, MaveMetrics.Repo,
   database: "mave_metrics_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 20
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -19,7 +19,7 @@ config :mave_metrics, MaveMetrics.Repo,
 config :mave_metrics, MaveMetricsWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: 3000],
+  http: [ip: {0, 0, 0, 0}, port: 3000, protocol_options: [idle_timeout: :infinity]],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,

@@ -3,11 +3,17 @@ defmodule MaveMetricsWeb.API.EngagementController do
 
   alias MaveMetrics.API
 
+  def get_engagement(conn, _params) do
+    {:ok, body, _conn} = Plug.Conn.read_body(conn)
+    params = Jason.decode!(body)
+    conn |> engagement(params)
+  end
+
   def engagement(conn, %{"identifier" => identifier, "query" => query} = params) do
     result = API.get_engagement({identifier, query}, params["timeframe"], params["ranges"])
 
     conn
-    |> json(result)
+    |> json(%{engagement: result})
     |> halt
   end
 
@@ -15,7 +21,7 @@ defmodule MaveMetricsWeb.API.EngagementController do
     result = API.get_engagement(identifier, params["timeframe"], params["ranges"])
 
     conn
-    |> json(result)
+    |> json(%{engagement: result})
     |> halt
   end
 
@@ -23,7 +29,7 @@ defmodule MaveMetricsWeb.API.EngagementController do
     result = API.get_engagement(filters, params["timeframe"], params["ranges"])
 
     conn
-    |> json(result)
+    |> json(%{engagement: result})
     |> halt
   end
 

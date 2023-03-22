@@ -7,12 +7,11 @@ defmodule MaveMetrics.API do
   import EctoCase
   alias MaveMetrics.Repo
 
-  @default_interval "1 day"
   @default_timeframe "7 days"
+  @default_interval "12 months"
   @default_minimum_watch_seconds 1
   @default_ranges 10
 
-  alias MaveMetrics.Session
   alias MaveMetrics.Session.Play
 
   # import Timescale.Hyperfunctions
@@ -23,7 +22,7 @@ defmodule MaveMetrics.API do
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    Play
+    result = Play
     |> join(:left, [p], s in assoc(p, :session))
     |> join(:left, [p, s], v in assoc(s, :video))
     |> where_query(query)
@@ -36,6 +35,8 @@ defmodule MaveMetrics.API do
     |> group_by([e], e.interval)
     |> format_output()
     |> Repo.all()
+
+    result
   end
 
 
@@ -165,6 +166,9 @@ defmodule MaveMetrics.API do
   defp where_timeframe(query, %{"from" => from_timestamp, "to" => to_timestamp}) do
     {:ok, from} = DateTime.from_unix(from_timestamp)
     {:ok, to} = DateTime.from_unix(to_timestamp)
+
+    dbg from
+    dbg to
 
     query
     |> where([p, s, v], p.timestamp >= ^from)

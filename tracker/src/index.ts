@@ -114,11 +114,11 @@ export class Metrics {
       this.#session = this.#initiateSession();
 
       this.#recordSession();
-      if (this.hls) {
-        this.#tapIntoHls();
-      } else {
-        this.#monitorSource();
-      }
+      // if (this.hls) {
+      //   this.#tapIntoHls();
+      // } else {
+      //   this.#monitorSource();
+      // }
       this.#monitorTracks();
 
       if (window) {
@@ -131,6 +131,12 @@ export class Metrics {
     }
 
     return this;
+  }
+
+  demonitor(): void {
+    if (this.#session) {
+      Data.stopSession(this.#session);
+    }
   }
 
   #monitorTracks(): void {
