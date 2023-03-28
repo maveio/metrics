@@ -12,8 +12,8 @@ defmodule MaveMetricsWeb.API.Auth do
   end
 
   defp handle_auth(conn, user, password) do
-    if key_id == Application.get_env(:mave_metrics, :api_user) and
-        secret == Application.get_env(:mave_metrics, :api_password) do
+    if user == Application.get_env(:mave_metrics, :api_user) and
+        password == Application.get_env(:mave_metrics, :api_password) do
           conn
       else
         conn |> unauthorized()
