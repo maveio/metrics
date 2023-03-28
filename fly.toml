@@ -1,29 +1,27 @@
 app = "mave-metrics"
+
 kill_signal = "SIGTERM"
 kill_timeout = 5
-primary_region = "ams"
 processes = []
 
 [deploy]
-  release_command = "/app/bin/migrate"
   strategy = "bluegreen"
 
 [env]
+  PRIMARY_REGION = "ams"
   PHX_HOST = "metrics.mave.io"
   PORT = "3000"
-
-[experimental]
-  auto_rollback = true
+  ROOT_URL = "https://metrics.mave.io"
 
 [[services]]
-  http_checks = []
   internal_port = 3000
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
+
   [services.concurrency]
-    hard_limit = 1000
-    soft_limit = 1000
+    hard_limit = 1024
+    soft_limit = 512
     type = "connections"
 
   [[services.ports]]
