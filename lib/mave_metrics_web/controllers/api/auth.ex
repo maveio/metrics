@@ -2,29 +2,18 @@ defmodule MaveMetricsWeb.API.Auth do
   use MaveMetricsWeb, :controller
   import Plug.Conn
 
-  def require_api_authenticated_user(conn, _opts) do
-    case get_req_header(conn, "authorization") do
-      ["Bearer " <> token] ->
-        case Base.decode64(token) do
-          {:ok, token} ->
-            [key_id, secret | _ ] = String.split(token, ":")
-            conn |> handle_key(key_id, secret)
-          _ ->
-            conn |> unauthorized()
-        end
+  def require_api_authentication(conn, _opts) do
+    case Plug.BasicAuth.parse_basic_auth(conn) do
+      {user, password} ->
+        conn |> handle_auth(user, password)
       _ ->
-        case Plug.BasicAuth.parse_basic_auth(conn) do
-          {key_id, secret} ->
-            conn |> handle_key(key_id, secret)
-          _ ->
-            conn |> unauthorized()
-        end
+        conn |> unauthorized()
     end
   end
 
-  defp handle_key(conn, key_id, secret) do
-    if key_id == Application.get_env(:mave_metrics, :api_key) and
-        secret == Application.get_env(:mave_metrics, :api_secret) do
+  defp handle_auth(conn, user, password) do
+    if key_id == Application.get_env(:mave_metrics, :api_user) and
+        secret == Application.get_env(:mave_metrics, :api_password) do
           conn
       else
         conn |> unauthorized()

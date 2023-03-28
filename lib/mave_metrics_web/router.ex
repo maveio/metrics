@@ -1,6 +1,9 @@
 defmodule MaveMetricsWeb.Router do
   use MaveMetricsWeb, :router
 
+  import MaveMetricsWeb.API.Auth
+  import Redirect
+
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
@@ -15,7 +18,7 @@ defmodule MaveMetricsWeb.Router do
   end
 
   scope "/api/v1", MaveMetricsWeb do
-    pipe_through :api
+    pipe_through [:api, :require_api_authentication]
 
     post "/views", API.ViewsController, :views
     get "/views", API.ViewsController, :get_views
@@ -25,6 +28,10 @@ defmodule MaveMetricsWeb.Router do
 
   scope "/", MaveMetricsWeb do
     pipe_through :browser
+
+    if Mix.env() not in [:dev, :test] do
+      redirect "/", "https://mave.io", :permanent
+    end
 
     get "/", PageController, :home
   end

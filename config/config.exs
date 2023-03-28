@@ -10,8 +10,8 @@ import Config
 config :mave_metrics,
   ecto_repos: [MaveMetrics.Repo],
   generators: [binary_id: true],
-  api_key: "letsflyaway",
-  api_secret: "inthisperfectweather"
+  api_user: System.get_env("MAVE_METRICS_USER"),
+  api_password: System.get_env("MAVE_METRICS_PASSWORD")
 
 config :mave_metrics, MaveMetrics.Repo,
   migration_primary_key: [name: :id, type: :binary_id],
