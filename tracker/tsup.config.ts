@@ -17,7 +17,7 @@ export default defineConfig({
   esbuildPlugins: [
     replace({
       '__buildVersion': json.version,
-      '__METRICS_ENDPOINT__': process.env.METRICS_ENDPOINT,
+      '__METRICS_ENDPOINT__': process.env.METRICS_ENDPOINT || 'wss://metrics.mave.io/socket',
     }),
   ]
 })

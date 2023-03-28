@@ -20,7 +20,6 @@
   "author": "mave.io",
   "license": "MIT",
   "devDependencies": {
-    "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.4.0",
     "@types/phoenix": "^1.5.5",
     "@typescript-eslint/eslint-plugin": "^5.52.0",
