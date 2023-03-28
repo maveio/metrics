@@ -12,12 +12,12 @@ export default defineConfig({
   splitting: false,
   clean: true,
   dts: true,
-  target: 'esnext',
+  target: 'es2020',
   noExternal: ['phoenix'],
   esbuildPlugins: [
     replace({
       '__buildVersion': json.version,
-      '__METRICS_ENDPOINT__': process.env.METRICS_ENDPOINT || 'wss://metrics.mave.io/socket',
+      '__METRICS_ENDPOINT__': process.env.METRICS_ENDPOINT || 'wss://metrics.video-dns.com/socket',
     }),
   ]
 })

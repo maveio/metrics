@@ -15,7 +15,7 @@ defmodule MaveMetricsWeb.Endpoint do
 
   socket "/socket", MaveMetricsWeb.VideoSocket,
     websocket: [
-      connect_info: [:user_agent, :uri]
+      connect_info: [:user_agent, :uri, check_origin: false]
     ],
     longpoll: false
 
