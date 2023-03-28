@@ -10,15 +10,15 @@ processes = []
   release_command = "/app/bin/migrate"
 
 [env]
-  PHX_HOST = "mave-metrics.fly.dev"
-  PORT = "8080"
+  PHX_HOST = "metrics.mave.io"
+  PORT = "3000"
 
 [experimental]
   auto_rollback = true
 
 [[services]]
   http_checks = []
-  internal_port = 8080
+  internal_port = 3000
   processes = ["app"]
   protocol = "tcp"
   script_checks = []
