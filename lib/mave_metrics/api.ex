@@ -167,9 +167,6 @@ defmodule MaveMetrics.API do
     {:ok, from} = DateTime.from_unix(from_timestamp)
     {:ok, to} = DateTime.from_unix(to_timestamp)
 
-    dbg from
-    dbg to
-
     query
     |> where([p, s, v], p.timestamp >= ^from)
     |> where([p, s, v], p.timestamp <= ^to)

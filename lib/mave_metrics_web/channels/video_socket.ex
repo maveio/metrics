@@ -11,9 +11,6 @@ defmodule MaveMetricsWeb.VideoSocket do
 
     ua = connect_info[:user_agent]
 
-    dbg "User-Agent: #{ua}"
-    dbg connect_info
-
     {:ok, socket |> assign(:ua, ua) |> assign(:source_url, source_url)}
   end
 
