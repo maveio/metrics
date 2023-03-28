@@ -19,7 +19,7 @@ config :mave_metrics, MaveMetrics.Repo,
 
 # Configures the endpoint
 config :mave_metrics, MaveMetricsWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: nil],
   render_errors: [
     formats: [html: MaveMetricsWeb.ErrorHTML, json: MaveMetricsWeb.ErrorJSON],
     layout: false
