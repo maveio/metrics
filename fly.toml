@@ -1,5 +1,3 @@
-# fly.toml file generated for mave-metrics on 2023-03-23T17:38:51+01:00
-
 app = "mave-metrics"
 kill_signal = "SIGTERM"
 kill_timeout = 5
@@ -8,6 +6,7 @@ processes = []
 
 [deploy]
   release_command = "/app/bin/migrate"
+  strategy = "bluegreen"
 
 [env]
   PHX_HOST = "metrics.mave.io"
@@ -37,7 +36,7 @@ processes = []
     port = 443
 
   [[services.tcp_checks]]
-    grace_period = "1s"
+    grace_period = "60s"
     interval = "15s"
     restart_limit = 0
-    timeout = "2s"
+    timeout = "5s"
