@@ -30,6 +30,7 @@ COPY assets assets
 RUN apt-get update -y && apt-get install -y npm
 
 RUN mix assets.deploy
+RUN echo y | mix ua_inspector.download
 RUN mix compile
 
 COPY config/runtime.exs config/
