@@ -33,7 +33,7 @@ RUN mix assets.deploy
 RUN mix compile
 
 COPY config/runtime.exs config/
-COPY rel rel
+# COPY rel rel
 
 RUN mix release
 
