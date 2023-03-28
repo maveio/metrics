@@ -16,3 +16,5 @@ erl_crash.dump
 
 # Static artifacts
 # node_modules
+
+tracker/package-lock.json
