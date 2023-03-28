@@ -3,9 +3,15 @@ defmodule MaveMetricsWeb.API.Auth do
   import Plug.Conn
 
   def require_api_authentication(conn, _opts) do
-    case Plug.BasicAuth.parse_basic_auth(conn) do
-      {user, password} ->
-        conn |> handle_auth(user, password)
+    case get_req_header(conn, "authorization") do
+      ["Token " <> token] ->
+        case Base.decode64(token) do
+          {:ok, token} ->
+            [user, password | _ ] = String.split(token, ":")
+            conn |> handle_auth(user, password)
+          _ ->
+            conn |> unauthorized()
+        end
       _ ->
         conn |> unauthorized()
     end

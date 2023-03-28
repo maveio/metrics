@@ -57,7 +57,7 @@ defmodule MaveMetrics.MixProject do
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:morphix, "~> 0.8.1"},
       {:ua_inspector, "~> 3.1"},
-      {:redirect, "~> 0.4.0"},
+      {:redirect, "~> 0.4.0"}
     ]
   end
 

@@ -26,13 +26,12 @@ defmodule MaveMetricsWeb.Router do
     get "/engagement", API.EngagementController, :get_engagement
   end
 
+  if Mix.env() not in [:dev, :test] do
+    redirect "/", "https://mave.io", :permanent
+  end
+
   scope "/", MaveMetricsWeb do
     pipe_through :browser
-
-    if Mix.env() not in [:dev, :test] do
-      redirect "/", "https://mave.io", :permanent
-    end
-
     get "/", PageController, :home
   end
 
