@@ -8,13 +8,30 @@
 </p>
 <br />
 
-# mave metrics
+# mave metrics - track usage not users
 
-### Track usage not users
+We believe privacy advocates are doing a great job by creating better website analytical tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like Youtube and Vimeo are becoming more privacy invasive. It's Google Analytics on steroid. We think if you want to know how your videos are performing on your site, you don't need to track your users - instead; mave metrics tracks usage.
 
-We believe privacy advocates are doing a great job by creating better website analytical tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like Youtube and Vimeo are becoming more privacy invasive. It's Google Analytics on steroid. We think if you want to know how your videos are performing on your site, you don't need to track your users - instead; Mave Metrics tracks usage.
+[Getting started](#getting-started) •
+[Installation](#installation) •
+[Configuration](#configuration) •
+[Integrations](#third-party-integrations)
 
 </div>
+
+## Getting started
+
+This runs on Elixir with Postgres with TimescaleDB, which can run on [fly.io](https://fly.io). All video events are aggregated per session and send over (Phoenix) websockets.
+
+## Installation
+
+tbd
+
+## Configuration
+
+tbd
+
+
 
 ## Todo
 
