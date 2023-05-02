@@ -40,3 +40,5 @@ node_modules
 
 .env
 .envrc
+
+_pgdata

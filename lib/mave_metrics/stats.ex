@@ -14,11 +14,9 @@ defmodule MaveMetrics.Stats do
   alias MaveMetrics.Session.Track
   alias MaveMetrics.Session.Source
 
-  def find_or_create_video(source_url, identifier, metadata \\ %{}) do
+  def find_or_create_video(source_url, identifier, metadata) do
     case get_by_source_url_and_identifier_and_metadata(source_url, identifier, metadata) do
-      nil ->
-        create_video(%{source_uri: source_url, identifier: identifier, metadata: metadata})
-      video ->
+      %Video{id: _id} = video ->
         {:ok, video}
         # if Morphix.equaliform?(video.metadata, metadata) do
         #   {:ok, video}
@@ -27,6 +25,8 @@ defmodule MaveMetrics.Stats do
         #   |> Video.changeset(%{metadata: metadata})
         #   |> Repo.update()
         # end
+      _ ->
+        create_video(%{source_uri: source_url, identifier: identifier, metadata: metadata})
     end
   end
 
@@ -34,9 +34,16 @@ defmodule MaveMetrics.Stats do
     Video
     |> where([v], v.source_uri == ^source_url)
     |> where([v], v.identifier == ^identifier)
-    |> where([v], v.metadata == ^metadata)
+    |> optional_metadata(metadata)
     |> Repo.one()
   end
+
+  def optional_metadata(query, %{} = metadata) do
+    query
+    |> where([v], v.metadata == ^metadata)
+  end
+
+  def optional_metadata(query, _metadata), do: query
 
   def create_video(attrs) do
     %Video{}

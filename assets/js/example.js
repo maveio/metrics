@@ -9,8 +9,9 @@
 
 // video uniqueness per identifier + page url (+ metadata)
 
-import { MaveMetrics } from "@maveio/metrics";
-const zep1 = new MaveMetrics("#my_video", "MIB2", {
+import { Metrics } from '@maveio/metrics';
+
+const zep1 = new Metrics("#my_video", "MIB2", {
   video_id: 1234,
   component_type: "clip",
   foo: "test",

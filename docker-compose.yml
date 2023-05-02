@@ -1,0 +1,33 @@
+---
+version: "3"
+
+services:
+  metrics:
+    hostname: mave-metrics.internal
+    build:
+      dockerfile: ../mave-metrics/Dockerfile.dev
+    volumes:
+      - ../mave-metrics/:/app
+    ports:
+      - "3000:3000"
+    environment:
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: mave_metrics_dev
+      PGHOST: db
+      PGPORT: 5432
+      TERM: xterm-256color
+    tty: true
+    depends_on:
+      - db
+  db:
+    hostname: mave-db.internal
+    image: timescale/timescaledb:latest-pg14
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - ./_pgdata:/var/lib/postgresql/data

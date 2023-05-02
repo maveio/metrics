@@ -25,12 +25,16 @@ This runs on Elixir with Postgres with TimescaleDB, which can run on [fly.io](ht
 
 ## Installation
 
-tbd
+`docker compose up metrics`
 
 ## Configuration
 
-tbd
+note: currently this is specifically made for mave.io - we'll need to make it more generic.
 
+
+## API
+
+https://documenter.getpostman.com/view/7853984/2s93eU2uQy
 
 
 ## Todo

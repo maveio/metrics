@@ -1,4 +1,4 @@
-// import "./example.js"
+import "./example.js";
 
 // You can include dependencies in two ways.
 //
