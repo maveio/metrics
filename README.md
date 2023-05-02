@@ -81,7 +81,7 @@ An example response:
 
 ### `/api/v1/engagement`
 
-Engagement is meant to see which parts of a video have been watched using the same technique as the plays request. You can get a video(s) by `identifier or `query` its metadata, set a `timeframe` for what period you want to get the engagement and set the amount of `ranges`, which is an integer to split up the play duration of sessions.
+Engagement is meant to see which parts of a video have been watched using the same technique as the plays request. You can get a video(s) by `identifier` or `query` its metadata, set a `timeframe` for what period you want to get the engagement and set the amount of `ranges`, which is an integer to split up the play duration of sessions.
 
 Example response:
 
