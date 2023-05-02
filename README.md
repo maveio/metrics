@@ -1,12 +1,10 @@
 <div align="center">
-<br />
-<br />
-<p style="padding: 8px 0;">
+<br>
+<p>
   <a href="https://mave.io">
     <img src="https://mave.io/images/logo.svg" alt="mave.io logo black" style="width: 230px;">
   </a>
 </p>
-<br />
 
 # mave metrics - track usage not users
 
@@ -15,7 +13,7 @@ We believe privacy advocates are doing a great job by creating better website an
 [Getting started](#getting-started) •
 [Installation](#installation) •
 [Configuration](#configuration) •
-[Integrations](#third-party-integrations)
+[API](#API)
 
 </div>
 
@@ -30,7 +28,6 @@ This runs on Elixir with Postgres with TimescaleDB, which can run on [fly.io](ht
 ## Configuration
 
 note: currently this is specifically made for mave.io - we'll need to make it more generic.
-
 
 ## API
 
