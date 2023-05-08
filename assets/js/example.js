@@ -6,10 +6,16 @@
 
 
 // possibly add session metadata (user info is dangerous)
-
 // video uniqueness per identifier + page url (+ metadata)
 
-import { Metrics } from '@maveio/metrics';
+
+
+// *****
+// Hey you 👋
+// To enable testing locally, use `npm link` inside `../../tracker` and `npm link @maveio/metrics` inside this folder
+// also uncomment the following line
+// *****
+// import { Metrics } from '@maveio/metrics';
 
 const zep1 = new Metrics("#my_video", "MIB2", {
   video_id: 1234,
