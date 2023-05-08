@@ -83,6 +83,36 @@ defmodule MaveMetrics.API do
     end
   end
 
+  def get_sources(query, interval, timeframe, minimum_watch_seconds) do
+    interval = interval || @default_interval
+    timeframe = timeframe || @default_timeframe
+    minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
+
+    result = Play
+    |> join(:left, [p], s in assoc(p, :session))
+    |> join(:left, [p, s], v in assoc(s, :video))
+    |> where_query(query)
+    |> where_timeframe(timeframe)
+    |> group_by([p, s, v], [fragment("time_bucket('?', ?)", literal(^interval), p.timestamp), p.session_id, v.source_uri])
+    |> select([p, s, v], %{
+      path: fragment("CONCAT((? ->> ?), (? ->> ?))", v.source_uri, "host", v.source_uri, "path"),
+      interval: fragment("time_bucket('?', ?)", literal(^interval), p.timestamp),
+      elapsed_time: sum(p.elapsed_time)
+    })
+    |> subquery()
+    |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
+    |> having([e], sum(e.elapsed_time) >= ^minimum_watch_seconds)
+    |> group_by([e], [e.path, e.interval])
+    |> select([e], %{
+      interval: e.interval,
+      path: e.path,
+      views: count(e.interval)
+    })
+    |> Repo.all()
+
+    result
+  end
+
   defp where_query(q, {identifier, query}) do
     q
     |> where_query(query)

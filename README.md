@@ -35,7 +35,7 @@ See example requests: https://documenter.getpostman.com/view/7853984/2s93eU2uQy
 
 ### `/api/v1/plays`
 
-Get the amount of plays and its data using the video `identifier` and/or `query` for metadata. 
+Get the amount of plays and its data using the video `identifier` and/or `query` for metadata.
 
 It is grouped by time buckets with `interval`, which can `1 day` over a `timeframe` of `1 month` for instance. The play is defined by using a `minimum_watch_seconds`, which can be `3 seconds` for instance.
 
@@ -108,6 +108,36 @@ Example response:
                 "to": 12.576
             },
             "viewers": 1
+        }
+    ]
+}
+```
+
+### `/api/v1/sources`
+
+Get the amount of plays per source using its `identifier` and/or `query` for metadata.
+
+It is grouped by time buckets with `interval`, which can `1 day` over a `timeframe` of `1 month` for instance. The play is defined by using a `minimum_watch_seconds`, which can be `3 seconds` for instance.
+
+An example response:
+
+```json
+{
+    "sources": [
+        {
+            "interval": "2023-04-02T08:29:00.000000",
+            "path": "http://example.com/",
+            "views": 1
+        },
+        {
+            "interval": "2023-05-02T08:29:00.000000",
+            "path": "http://example.com/",
+            "views": 1
+        },
+        {
+            "interval": "2023-05-02T08:41:00.000000",
+            "path": "http://example.com/",
+            "views": 1
         }
     ]
 }

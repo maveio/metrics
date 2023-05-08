@@ -25,6 +25,8 @@ defmodule MaveMetricsWeb.Router do
     get "/views", API.ViewsController, :get_views
     post "/engagement", API.EngagementController, :engagement
     get "/engagement", API.EngagementController, :get_engagement
+    post "/sources", API.SourcesController, :sources
+    get "/sources", API.SourcesController, :get_sources
   end
 
   if Mix.env() not in [:dev, :test] do
