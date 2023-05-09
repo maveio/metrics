@@ -25,7 +25,6 @@ export default class Data {
             source_url: window.location.href
           }
         })
-
         Data.instance.#socket.connect();
       }
     }
@@ -41,7 +40,7 @@ export default class Data {
       return result;
     }
 
-    const session = Data.instance.#socket.channel(identifier, metadata);
+    const session = Data.instance.#socket.channel(identifier, {...metadata, source_url: window.location.href});
 
     Data.instance.#channels.set(identifier, session);
 

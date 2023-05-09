@@ -6,10 +6,9 @@ defmodule MaveMetrics.Session do
   @foreign_key_type :binary_id
 
   @required_fields ~w()a
-  @optional_fields ~w(browser browser_type platform device_type metadata)a
+  @optional_fields ~w(browser_type platform device_type metadata)a
 
   schema "sessions" do
-    field :browser, :string
     field :browser_type, Ecto.Enum, values: [:edge, :ie, :chrome, :firefox, :opera, :safari, :brave, :other], default: :other
     field :platform, Ecto.Enum, values: [:ios, :android, :mac, :windows, :linux, :other], default: :other
     field :device_type, Ecto.Enum, values: [:mobile, :tablet, :desktop, :other], default: :other

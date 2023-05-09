@@ -27,11 +27,10 @@ defmodule MaveMetrics.API do
     |> join(:left, [p, s], v in assoc(s, :video))
     |> where_query(query)
     |> where_timeframe(timeframe)
-    |> group_by([p, s, v], [fragment("time_bucket('?', ?)", literal(^interval), p.timestamp), p.session_id, s.platform, s.device_type, s.browser_type])
+    |> group_by([p, s, v], [fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp), p.session_id, s.platform, s.device_type, s.browser_type])
     |> select_details(interval)
     |> subquery()
     |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
-    |> having([e], sum(e.elapsed_time) >= ^minimum_watch_seconds)
     |> group_by([e], e.interval)
     |> format_output()
     |> Repo.all()
@@ -93,10 +92,10 @@ defmodule MaveMetrics.API do
     |> join(:left, [p, s], v in assoc(s, :video))
     |> where_query(query)
     |> where_timeframe(timeframe)
-    |> group_by([p, s, v], [fragment("time_bucket('?', ?)", literal(^interval), p.timestamp), p.session_id, v.source_uri])
+    |> group_by([p, s, v], [fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp), p.session_id, v.source_uri])
     |> select([p, s, v], %{
-      path: fragment("CONCAT((? ->> ?), (? ->> ?))", v.source_uri, "host", v.source_uri, "path"),
-      interval: fragment("time_bucket('?', ?)", literal(^interval), p.timestamp),
+      path: fragment(~s|CONCAT((? ->> ?), (? ->> ?))|, v.source_uri, "host", v.source_uri, "path"),
+      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp),
       elapsed_time: sum(p.elapsed_time)
     })
     |> subquery()

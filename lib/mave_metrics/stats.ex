@@ -14,6 +14,7 @@ defmodule MaveMetrics.Stats do
   alias MaveMetrics.Session.Track
   alias MaveMetrics.Session.Source
 
+  # returns existing videos that aren't part of that video
   def find_or_create_video(source_url, identifier, metadata) do
     case get_by_source_url_and_identifier_and_metadata(source_url, identifier, metadata) do
       %Video{id: _id} = video ->
@@ -32,8 +33,8 @@ defmodule MaveMetrics.Stats do
 
   def get_by_source_url_and_identifier_and_metadata(source_url, identifier, metadata) do
     Video
-    |> where([v], v.source_uri == ^source_url)
     |> where([v], v.identifier == ^identifier)
+    |> where([v], v.source_uri == ^source_url)
     |> optional_metadata(metadata)
     |> Repo.one()
   end

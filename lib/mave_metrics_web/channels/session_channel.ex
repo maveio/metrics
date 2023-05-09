@@ -10,13 +10,17 @@ defmodule MaveMetricsWeb.SessionChannel do
       {:error, %{reason: "bot"}}
     else
       _ ->
-      # we're not storing the complete user-agent string to make it impossible to make a fingerprint
+      # TODO:
+      # check if source_url is part of domain in socket.assigns.root_url
+      source_url = params["source_url"] || socket.assigns.source_url
 
+      # we're not storing the complete user-agent string to make it impossible to make a fingerprint
       session_attrs = %{
         metadata: params["session_data"]
       } |> Map.merge(socket.assigns.ua |> session_info())
 
-      {:ok, video} = Stats.find_or_create_video(socket.assigns.source_url, identifier, params["metadata"])
+      {:ok, video} = Stats.find_or_create_video(source_url, identifier, params["metadata"])
+
       {:ok, session} = Stats.create_session(video, session_attrs)
 
       {:ok, socket |> assign(:session_id, session.id) |> monitor(self())}
