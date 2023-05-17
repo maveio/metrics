@@ -165,6 +165,7 @@ defmodule MaveMetrics.API do
     |> select([e], %{
       interval: e.interval,
       views: count(e.interval),
+      total_view_time: sum(e.elapsed_time),
       platform: %{
         mac: sum(e.platform_mac),
         ios: sum(e.platform_ios),

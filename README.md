@@ -70,6 +70,7 @@ An example response:
                 "other": 0,
                 "windows": 0
             },
+            "total_view_time": 6.267,
             "views": 1
         }
     ]
