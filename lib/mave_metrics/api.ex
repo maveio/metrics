@@ -94,16 +94,18 @@ defmodule MaveMetrics.API do
     |> where_timeframe(timeframe)
     |> group_by([p, s, v], [fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp), p.session_id, v.source_uri])
     |> select([p, s, v], %{
-      path: fragment(~s|CONCAT((? ->> ?), (? ->> ?))|, v.source_uri, "host", v.source_uri, "path"),
+      host: fragment(~s|(? ->> ?)|, v.source_uri, "host"),
+      path: fragment(~s|(? ->> ?)|, v.source_uri, "path"),
       interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp),
       elapsed_time: sum(p.elapsed_time)
     })
     |> subquery()
     |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
     |> having([e], sum(e.elapsed_time) >= ^minimum_watch_seconds)
-    |> group_by([e], [e.path, e.interval])
+    |> group_by([e], [e.host, e.path, e.interval])
     |> select([e], %{
       interval: e.interval,
+      host: e.host,
       path: e.path,
       views: count(e.interval)
     })
