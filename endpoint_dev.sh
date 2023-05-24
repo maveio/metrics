@@ -18,16 +18,6 @@ else
   echo "Database $PGDATABASE already exists. Doing nothing."
 fi
 
-cd tracker
-npm install --loglevel=error
-npm link
-npm run build:watch &
-cd ..
-
-cd assets
-npm link @maveio/metrics
-cd ..
-
 mix deps.get
 mix assets.deploy
 echo y | mix ua_inspector.download
