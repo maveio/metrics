@@ -10,7 +10,7 @@ import Config
 config :mave_metrics,
   ecto_repos: [MaveMetrics.Repo],
   generators: [binary_id: true],
-  api_auth: true,
+  api_auth: false,
   api_user: System.get_env("MAVE_METRICS_USER"),
   api_password: System.get_env("MAVE_METRICS_PASSWORD")
 
