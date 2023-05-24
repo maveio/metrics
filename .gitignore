@@ -31,14 +31,7 @@ mave_metrics-*.tar
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
 
-tracker/node_modules/
-tracker/dist/
-
-node_modules
-
-.DS_Store
-
-.env
-.envrc
-
 _pgdata
+node_modules
+.DS_Store
+.envrc

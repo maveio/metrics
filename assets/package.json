@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@maveio/metrics": "^0.0.4",
+    "hls.js": "^1.4.3"
+  }
+}

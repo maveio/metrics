@@ -1,21 +1,14 @@
-
-// // TODO:
-// // - make sure it already tracks video events without an active socket connection
-// // - if connection breaks, collection all events and send them when reconnected
-// // - respect DO NOT TRACK
-
-
-// possibly add session metadata (user info is dangerous)
-// video uniqueness per identifier + page url (+ metadata)
-
-
+import Hls from 'hls.js';
 
 // *****
 // Hey you 👋
 // To enable testing locally, use `npm link` inside `../../tracker` and `npm link @maveio/metrics` inside this folder
 // also uncomment the following line
 // *****
-// import { Metrics } from '@maveio/metrics';
+
+
+import { Metrics } from '@maveio/metrics';
+// Metrics.socket_path = 'ws://localhost:3000/socket'
 
 const zep1 = new Metrics("#my_video", "MIB2", {
   video_id: 1234,
