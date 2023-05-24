@@ -1,5 +1,8 @@
 import Config
 
+config :mave_metrics,
+  api_auth: false
+
 # Configure your database
 config :mave_metrics, MaveMetrics.Repo,
   username: "postgres",

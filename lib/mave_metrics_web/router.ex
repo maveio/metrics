@@ -1,7 +1,7 @@
 defmodule MaveMetricsWeb.Router do
   use MaveMetricsWeb, :router
 
-  # import MaveMetricsWeb.API.Auth
+  import MaveMetricsWeb.API.Auth
   import Redirect
 
   pipeline :browser do
@@ -18,8 +18,8 @@ defmodule MaveMetricsWeb.Router do
   end
 
   scope "/api/v1", MaveMetricsWeb do
-    # pipe_through [:api, :require_api_authentication]
-    pipe_through :api
+    pipe_through [:api, :require_api_authentication]
+    # pipe_through :api
 
     post "/views", API.ViewsController, :views
     get "/views", API.ViewsController, :get_views
