@@ -74,7 +74,7 @@ defmodule MaveMetrics.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.deploy": ["tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.deploy": ["cmd npm install --prefix assets", "tailwind default --minify", "esbuild default --minify", "phx.digest"]
     ]
   end
 end
