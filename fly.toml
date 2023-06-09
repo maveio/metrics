@@ -9,6 +9,7 @@ kill_signal = "SIGTERM"
 kill_timeout = "5s"
 
 [deploy]
+  release_command = "/app/bin/migrate"
   strategy = "rolling"
 
 [env]
