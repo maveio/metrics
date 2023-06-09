@@ -9,7 +9,7 @@
   </a>
 </p>
 
-# metrics server
+# metrics
 
 We believe privacy advocates are doing a great job by creating better website analytics tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like YouTube and Vimeo are becoming increasingly privacy invasive. They are essentially Google Analytics on steroids. We think that if you want to understand how your videos are performing on your site, you don't need to track your users. Instead, mave metrics tracks usage, providing valuable insights without compromising user privacy.
 
@@ -58,7 +58,10 @@ By default, the library will connect to `ws://localhost:3000/socket`. To modify 
 
 ```javascript
 import { Metrics } from '@maveio/metrics';
-Metrics.socket_path = 'wss://{your domain here}/socket'
+Metrics.config = {
+    socketPath: 'wss://{your domain here}/socket',
+    apiKey: '{your api key here}',
+}
 ```
 
 To collect video events, you will need to include the following script on your page:
