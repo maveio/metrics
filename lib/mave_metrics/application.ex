@@ -21,9 +21,11 @@ defmodule MaveMetrics.Application do
       # Start Finch
       {Finch, name: MaveMetrics.Finch},
       # Start the Endpoint (http/https)
-      MaveMetricsWeb.Endpoint
+      MaveMetricsWeb.Endpoint,
       # Start a worker by calling: MaveMetrics.Worker.start_link(arg)
       # {MaveMetrics.Worker, arg}
+      # Start cache
+      MaveMetrics.PartitionedCache
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

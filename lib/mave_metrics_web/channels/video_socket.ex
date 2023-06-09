@@ -5,12 +5,7 @@ defmodule MaveMetricsWeb.VideoSocket do
 
   @impl true
   def connect(%{"source_url" => source_url} = _params, socket, connect_info) do
-    # TODO:
-    # check if source_url is equal
-    # to connect_info[:uri]
-
     ua = connect_info[:user_agent]
-
     {:ok, socket |> assign(:ua, ua) |> assign(:source_url, source_url)}
   end
 

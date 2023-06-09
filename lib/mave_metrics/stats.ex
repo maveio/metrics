@@ -13,6 +13,7 @@ defmodule MaveMetrics.Stats do
   alias MaveMetrics.Session.Play
   alias MaveMetrics.Session.Track
   alias MaveMetrics.Session.Source
+  alias MaveMetrics.Key
 
   # returns existing videos that aren't part of that video
   def find_or_create_video(source_url, identifier, metadata) do
@@ -52,9 +53,10 @@ defmodule MaveMetrics.Stats do
     |> Repo.insert()
   end
 
-  def create_session(%Video{} = video, attrs \\ %{}) do
+  def create_session(%Video{} = video, %Key{} = key, attrs \\ %{}) do
     %Session{}
     |> Session.changeset(attrs |> Map.put(:timestamp, DateTime.utc_now()))
+    |> Changeset.put_assoc(:key, key)
     |> Changeset.put_assoc(:video, video)
     |> Repo.insert()
   end

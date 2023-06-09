@@ -17,6 +17,8 @@ services:
       PGHOST: db
       PGPORT: 5432
       TERM: xterm-256color
+    env_file:
+      - ./.envrc
     tty: true
     depends_on:
       - db

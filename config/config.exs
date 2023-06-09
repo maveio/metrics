@@ -10,13 +10,18 @@ import Config
 config :mave_metrics,
   ecto_repos: [MaveMetrics.Repo],
   generators: [binary_id: true],
-  api_auth: false,
-  api_user: System.get_env("MAVE_METRICS_USER"),
-  api_password: System.get_env("MAVE_METRICS_PASSWORD")
+  api_auth: System.get_env("METRICS_AUTH_ENABLED") == "true" || false,
+  api_user: System.get_env("METRICS_USER"),
+  api_password: System.get_env("METRICS_PASSWORD")
 
 config :mave_metrics, MaveMetrics.Repo,
   migration_primary_key: [name: :id, type: :binary_id],
   migration_timestamps: [type: :utc_datetime_usec]
+
+config :mave_metrics, MaveMetrics.PartitionedCache,
+  gc_interval: :timer.hours(12),
+  backend: :shards,
+  partitions: 2
 
 # Configures the endpoint
 config :mave_metrics, MaveMetricsWeb.Endpoint,

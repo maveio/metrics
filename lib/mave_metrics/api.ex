@@ -7,16 +7,19 @@ defmodule MaveMetrics.API do
   import EctoCase
   alias MaveMetrics.Repo
 
+  use Nebulex.Caching
+  alias MaveMetrics.PartitionedCache, as: Cache
+
   @default_timeframe "7 days"
   @default_interval "12 months"
   @default_minimum_watch_seconds 1
   @default_ranges 10
 
+  @ttl :timer.seconds(30)
+
   alias MaveMetrics.Session.Play
 
-  # import Timescale.Hyperfunctions
-  # https://medium.com/hackernoon/how-to-query-jsonb-beginner-sheet-cheat-4da3aa5082a3
-
+  @decorate cacheable(cache: Cache, key: {Play, "plays" <> key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)}, opts: [ttl: @ttl])
   def get_plays(query, interval, timeframe, minimum_watch_seconds) do
     interval = interval || @default_interval
     timeframe = timeframe || @default_timeframe
@@ -38,7 +41,7 @@ defmodule MaveMetrics.API do
     result
   end
 
-
+  @decorate cacheable(cache: Cache, key: {Play, "engagement" <> key(query) <> key(timeframe) <> key(ranges)}, opts: [ttl: @ttl])
   def get_engagement(query, timeframe, ranges) do
     timeframe = timeframe || @default_timeframe
     ranges = ranges || @default_ranges
@@ -82,6 +85,7 @@ defmodule MaveMetrics.API do
     end
   end
 
+  @decorate cacheable(cache: Cache, key: {Play, "source" <> key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)}, opts: [ttl: @ttl])
   def get_sources(query, interval, timeframe, minimum_watch_seconds) do
     interval = interval || @default_interval
     timeframe = timeframe || @default_timeframe
@@ -215,4 +219,10 @@ defmodule MaveMetrics.API do
     query
     |> where([p, s, v], p.timestamp >= fragment("now() - interval '?'", literal(^timeframe)))
   end
+
+  defp key(%{} = query) do
+    Enum.map_join(query, ", ", fn {k, v} -> ~s{"#{key(k)}":"#{key(v)}"} end)
+  end
+
+  defp key(key), do: "#{key}"
 end

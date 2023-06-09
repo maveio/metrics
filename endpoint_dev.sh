@@ -23,4 +23,5 @@ fi
 mix deps.get
 mix assets.deploy
 echo y | mix ua_inspector.download
+mix run priv/repo/seeds.exs
 mix phx.server

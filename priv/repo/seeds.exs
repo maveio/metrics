@@ -9,3 +9,6 @@
 #
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
+
+
+MaveMetrics.Keys.create_key(%{"key" => "HDsj3NfKQTNwn5Ix9g+cfQ=="})

@@ -14,6 +14,7 @@ defmodule MaveMetrics.Session do
     field :device_type, Ecto.Enum, values: [:mobile, :tablet, :desktop, :other], default: :other
 
     belongs_to :video, MaveMetrics.Video
+    belongs_to :key, MaveMetrics.Key
 
     has_many :events, MaveMetrics.Session.Event
     has_many :sources, MaveMetrics.Session.Source
@@ -29,5 +30,6 @@ defmodule MaveMetrics.Session do
     model
     |> cast(attrs, @required_fields ++ @optional_fields)
     |> cast_assoc(:video)
+    |> cast_assoc(:key)
   end
 end

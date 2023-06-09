@@ -54,24 +54,6 @@ defmodule MaveMetrics.Repo.Migrations.CreateEventData do
     create_hypertable(:plays, :timestamp)
 
 
-    # sources
-
-    # create_if_not_exists table(:sources, primary_key: false) do
-    #   add :timestamp, :utc_datetime_usec, null: false, primary_key: true
-    #   add :session_id, references(:sessions), null: false, primary_key: true
-
-    #   add :source_url, :map, null: false
-
-    #   add :bitrate, :int
-    #   add :width, :int
-    #   add :height, :int
-    #   add :codec, :string
-    # end
-
-    # create_if_not_exists index(:sources, [:session_id])
-    # create_if_not_exists unique_index(:sources, [:session_id, :timestamp])
-    # create_hypertable(:sources, :timestamp)
-
     # tracks
 
     execute "CREATE TYPE language_code AS ENUM ('af', 'am', 'ar', 'as', 'az', 'ba', 'be', 'bg', 'bn', 'bo', 'br', 'bs', 'ca', 'cs', 'cy', 'da', 'de', 'el', 'en', 'es', 'et', 'eu', 'fa', 'fi', 'fo', 'fr', 'gl', 'gu', 'ha', 'haw', 'hi', 'hr', 'ht', 'hu', 'hy', 'id', 'is', 'it', 'iw', 'ja', 'jw', 'ka', 'kk', 'km', 'kn', 'ko', 'la', 'lb', 'ln', 'lo', 'lt', 'lv', 'mg', 'mi', 'mk', 'ml', 'mn', 'mr', 'ms', 'mt', 'my', 'ne', 'nl', 'nn', 'no', 'oc', 'pa', 'pl', 'ps', 'pt', 'ro', 'ru', 'sa', 'sd', 'si', 'sk', 'sl', 'sn', 'so', 'sq', 'sr', 'su', 'sv', 'sw', 'ta', 'te', 'tg', 'th', 'tk', 'tl', 'tr', 'tt', 'uk', 'ur', 'uz', 'vi', 'yi', 'yo', 'zh')"
@@ -91,7 +73,6 @@ defmodule MaveMetrics.Repo.Migrations.CreateEventData do
 
   def down do
     drop table("tracks"), mode: :cascade
-    drop table("sources"), mode: :cascade
     drop table("plays"), mode: :cascade
     drop table("events"), mode: :cascade
   end

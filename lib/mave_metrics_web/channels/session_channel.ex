@@ -2,30 +2,36 @@ defmodule MaveMetricsWeb.SessionChannel do
   use MaveMetricsWeb, :channel
 
   alias MaveMetrics.Stats
+  alias MaveMetrics.Keys
 
   @impl true
-  def join("session:" <> _id, %{"identifier" => identifier} = params, %{id: _session_id} = socket) do
-
+  def join("session:" <> _id, %{"identifier" => identifier, "key" => key} = params, %{id: _session_id, assigns: %{ua: ua}} = socket) do
     with %UAInspector.Result.Bot{name: _name} <- UAInspector.parse(socket.assigns.ua) do
       {:error, %{reason: "bot"}}
     else
-      _ ->
-      # TODO:
-      # check if source_url is part of domain in socket.assigns.root_url
-      source_url = params["source_url"] || socket.assigns.source_url
+      parsed_ua ->
+        case Keys.valid_key?(key) do
+          {:ok, key} ->
+            source_url = params["source_url"] || socket.assigns.source_url
 
-      # we're not storing the complete user-agent string to make it impossible to make a fingerprint
-      session_attrs = %{
-        metadata: params["session_data"]
-      } |> Map.merge(socket.assigns.ua |> session_info())
+            # we're not storing the complete user-agent string to make it impossible to make a fingerprint
+            session_attrs = %{
+              metadata: params["session_data"]
+            } |> Map.merge(parsed_ua |> session_info())
 
-      {:ok, video} = Stats.find_or_create_video(source_url, identifier, params["metadata"])
+            {:ok, video} = Stats.find_or_create_video(source_url, identifier, params["metadata"])
 
-      {:ok, session} = Stats.create_session(video, session_attrs)
-
-      {:ok, socket |> assign(:session_id, session.id) |> monitor(self())}
+            {:ok, session} = Stats.create_session(video, key, session_attrs)
+            {:ok, socket |> assign(:session_id, session.id) |> monitor(self())}
+          {:error, reason} ->
+            {:error, %{reason: "invalid key"}}
+        end
     end
+  end
 
+  @impl true
+  def join(session, params, _socket) do
+    {:error, %{reason: "missing parameters and/or invalid host"}}
   end
 
   @impl true
@@ -73,42 +79,6 @@ defmodule MaveMetricsWeb.SessionChannel do
 
     {:noreply, socket}
   end
-
-  # @impl true
-  # def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "bitrate" => bitrate, "width" => width, "height" => height, "codec" => codec, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
-  #   create_event(params, socket)
-
-  #   timestamp = DateTime.from_unix!(timestamp, :millisecond)
-
-  #   params = %{
-  #     source_url: source_url,
-  #     bitrate: bitrate,
-  #     width: width,
-  #     height: height,
-  #     codec: codec,
-  #     session_id: session_id,
-  #     timestamp: timestamp
-  #   }
-
-  #   Stats.create_source(params)
-
-  #   {:noreply, socket}
-  # end
-
-  # @impl true
-  # def handle_in("event", %{"name" => "source_set", "source_url" => source_url, "timestamp" => timestamp} = params, %{assigns: %{session_id: session_id}} = socket) do
-  #   create_event(params, socket)
-
-  #   timestamp = DateTime.from_unix!(timestamp, :millisecond)
-
-  #   Stats.create_source(%{
-  #     source_url: source_url,
-  #     session_id: session_id,
-  #     timestamp: timestamp
-  #   })
-
-  #   {:noreply, socket}
-  # end
 
   @impl true
   def handle_in("event", params, socket) do
@@ -161,9 +131,7 @@ defmodule MaveMetricsWeb.SessionChannel do
 
   defp on_disconnect(_socket), do: nil
 
-  defp session_info(ua) do
-    %{os_family: platform, device: device, client: browser} = UAInspector.parse(ua)
-
+  defp session_info(%{os_family: platform, device: device, client: browser}) do
     %{
       browser_type: browser |> get_browser_type,
       platform: platform |> get_platform,

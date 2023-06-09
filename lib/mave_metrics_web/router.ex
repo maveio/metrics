@@ -18,8 +18,7 @@ defmodule MaveMetricsWeb.Router do
   end
 
   scope "/api/v1", MaveMetricsWeb do
-    pipe_through [:api, :require_api_authentication]
-    # pipe_through :api
+    pipe_through [:api, :require_api_authentication?]
 
     post "/views", API.ViewsController, :views
     get "/views", API.ViewsController, :get_views
@@ -27,6 +26,10 @@ defmodule MaveMetricsWeb.Router do
     get "/engagement", API.EngagementController, :get_engagement
     post "/sources", API.SourcesController, :sources
     get "/sources", API.SourcesController, :get_sources
+
+    post "/keys", API.KeysController, :create_key
+    get "/keys", API.KeysController, :get_keys
+    delete "/keys/:key", API.KeysController, :revoke_key
   end
 
   if Mix.env() not in [:dev, :test] do

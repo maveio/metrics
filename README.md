@@ -9,38 +9,78 @@
   </a>
 </p>
 
-# metrics server - track usage not users
+# metrics server
 
-We believe privacy advocates are doing a great job by creating better website analytical tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like Youtube and Vimeo are becoming more privacy invasive. It's Google Analytics on steroid. We think if you want to know how your videos are performing on your site, you don't need to track your users - instead; mave metrics tracks usage.
+We believe privacy advocates are doing a great job by creating better website analytics tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like YouTube and Vimeo are becoming increasingly privacy invasive. They are essentially Google Analytics on steroids. We think that if you want to understand how your videos are performing on your site, you don't need to track your users. Instead, mave metrics tracks usage, providing valuable insights without compromising user privacy.
 
 [Getting started](#getting-started) •
 [Installation](#installation) •
 [Configuration](#configuration) •
-[API](#API)
+[API](#api) •
+[Client](https://github.com/maveio/metrics)
 
 </div>
 
+<p>
+<img src="https://github.com/maveio/metrics/assets/238946/08d16cf5-32b1-47c6-9ec3-fbd094fb7df3"  alt="example" style="width: 50%;">
+
+_This is not part of this repo, but an example what you can build with it (this is the data page on [mave.io](https://mave.io))_
+</p>
+
 ## Getting started
 
-This runs on Elixir with Postgres with TimescaleDB, which can run on [fly.io](https://fly.io). All video events are aggregated per session and send over (Phoenix) websockets.
+This system runs on Elixir with Postgres and utilizes TimescaleDB. All video events are aggregated per session and sent over websockets. Each session is unique, as we don't track users. Therefore, when a user refreshes, it is considered a new view.
 
 ## Installation
 
-`docker compose up metrics`
+Start with a git checkout of this project and run the following command:
+
+```bash
+docker compose up metrics
+```
+
+It will run on http://localhost:3000/ by default, with example videos and an example API key to get you started.
 
 ## Configuration
 
-note: currently this is specifically made for mave.io - we'll need to make it more generic.
+You can start the server without setting any environment variables. However, once you put it into production, we recommend setting the following environment variables (refer to `.envrc`):
+
+
+```bash
+METRICS_AUTH_ENABLED=true
+METRICS_USER=mave
+METRICS_PASSWORD=password
+```
+
+There is a client-side library required to send the events to the server, which can be found here: https://github.com/maveio/metrics.
+
+By default, the library will connect to `ws://localhost:3000/socket`. To modify this behavior, you'll need to import the library into your project and change its host by following these steps:
+
+```javascript
+import { Metrics } from '@maveio/metrics';
+Metrics.socket_path = 'wss://{your domain here}/socket'
+```
+
+To collect video events, you will need to include the following script on your page:
+
+```javascript
+const metrics = new Metrics("#my_video", "label name", {
+  custom_query_id: 1234,
+})
+metrics.monitor()
+```
+
+⚠️ Use the API to generate a new API key before going to production.
 
 ## API
 
-See example requests: https://documenter.getpostman.com/view/7853984/2s93eU2uQy
+See example requests on [Run with Postman](https://documenter.getpostman.com/view/7853984/2s93eU2uQy)
 
-### `/api/v1/plays`
+### `/api/v1/plays` (POST or GET)
 
-Get the amount of plays and its data using the video `identifier` and/or `query` for metadata.
+Retrieve the number of plays and associated data using the video's `identifier` and/or `query` for metadata.
 
-It is grouped by time buckets with `interval`, which can `1 day` over a `timeframe` of `1 month` for instance. The play is defined by using a `minimum_watch_seconds`, which can be `3 seconds` for instance.
+The data is grouped into time buckets using the specified `interval`, such as `1 day`, within a given `timeframe`, for example, `1 month`. A play is defined based on a `minimum_watch_seconds` threshold, such as `3 seconds`.
 
 An example response:
 
@@ -80,9 +120,9 @@ An example response:
 }
 ```
 
-### `/api/v1/engagement`
+### `/api/v1/engagement` (POST or GET)
 
-Engagement is meant to see which parts of a video have been watched using the same technique as the plays request. You can get a video(s) by `identifier` or `query` its metadata, set a `timeframe` for what period you want to get the engagement and set the amount of `ranges`, which is an integer to split up the play duration of sessions.
+Engagement is used to determine the portions of a video that have been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) using the `identifier` or `query` for metadata, set a `timeframe` to define the desired period, and indicate the number of `ranges` as an integer to segment the play duration of sessions.
 
 Example response:
 
@@ -117,11 +157,11 @@ Example response:
 }
 ```
 
-### `/api/v1/sources`
+### `/api/v1/sources` (POST or GET)
 
-Get the amount of plays per source using its `identifier` and/or `query` for metadata.
+Retrieve the number of plays per source using the video's `identifier` and/or `query` for metadata. A source refers to the location where your video is placed, which can be particularly useful when embedding the same video across multiple pages/sites.
 
-It is grouped by time buckets with `interval`, which can `1 day` over a `timeframe` of `1 month` for instance. The play is defined by using a `minimum_watch_seconds`, which can be `3 seconds` for instance.
+The data is grouped into time buckets with an `interval`, such as `1 day`, over a specified `timeframe`, for example, `1 month`. A play is defined by a `minimum_watch_seconds` threshold, such as `3 seconds`.
 
 An example response:
 
@@ -148,15 +188,43 @@ An example response:
 ```
 
 
-## Todo
+### `/api/v1/keys` (POST)
 
-- [ ] (feature) views per source (url)
+Create a new API key to use with the client-side library.
 
-- [ ] (feature) dashboard
-- [ ] (feature) calculate rebuffer time per video
-- [ ] (feature) pagination
-- [ ] (feature) get all individual events for a specific session
+An example response:
 
-- [ ] (bug) missing unit tests
-- [ ] (bug) iOS doesn't send fullscreen event
+```json
+{
+    "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+}
+```
 
+### `/api/v1/keys` (GET)
+
+Retrieves all API keys and whether they are disabled.
+
+An example response:
+
+```json
+{
+    "keys": [
+        {
+            "disabled_at": null,
+            "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+        }
+    ]
+}
+```
+
+### `/api/v1/keys/{id}` (DELETE)
+
+Revoke a key.
+
+An example response:
+
+```json
+{
+    "message": "Key revoked"
+}
+```
