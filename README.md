@@ -11,6 +11,10 @@
 
 # metrics
 
+![version](https://img.shields.io/github/v/tag/maveio/metrics-server?color=5850ec&label=version)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/maveio/metrics-server/sobelow.yml?label=Sobelow&color=5850ec)](https://github.com/maveio/metrics-server/actions/workflows/github-code-scanning/sobelow.yml)
+[![Discord server](https://img.shields.io/badge/Discord-mave.io-5850ec)](https://discord.gg/SBCKwnwHkC)
+
 We believe privacy advocates are doing a great job by creating better website analytics tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like YouTube and Vimeo are becoming increasingly privacy invasive. They are essentially Google Analytics on steroids. We think that if you want to understand how your videos are performing on your site, you don't need to track your users. Instead, mave metrics tracks usage, providing valuable insights without compromising user privacy.
 
 [Getting started](#getting-started) •
