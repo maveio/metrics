@@ -3,6 +3,8 @@ defmodule MaveMetrics.Stats do
   The Stats context.
   """
 
+  @min_rebuffering_duration 1
+
   import Ecto.Query, warn: false
   alias MaveMetrics.Repo
   alias Ecto.Changeset
@@ -10,7 +12,7 @@ defmodule MaveMetrics.Stats do
   alias MaveMetrics.Video
   alias MaveMetrics.Session
   alias MaveMetrics.Session.Event
-  alias MaveMetrics.Session.Play
+  alias MaveMetrics.Session.Duration
   alias MaveMetrics.Session.Track
   alias MaveMetrics.Session.Source
   alias MaveMetrics.Key
@@ -20,13 +22,7 @@ defmodule MaveMetrics.Stats do
     case get_by_source_url_and_identifier_and_metadata(source_url, identifier, metadata) do
       %Video{id: _id} = video ->
         {:ok, video}
-        # if Morphix.equaliform?(video.metadata, metadata) do
-        #   {:ok, video}
-        # else
-        #   video
-        #   |> Video.changeset(%{metadata: metadata})
-        #   |> Repo.update()
-        # end
+
       _ ->
         create_video(%{source_uri: source_url, identifier: identifier, metadata: metadata})
     end
@@ -67,54 +63,81 @@ defmodule MaveMetrics.Stats do
     |> Repo.insert!()
   end
 
-  def get_last_play_event(session_id) do
+  def get_last_event(type, session_id) do
     Event
     |> where([e], e.session_id == ^session_id)
-    |> where([e], e.name == :play)
+    |> where([e], e.name == ^type)
     |> order_by([e], desc: e.timestamp)
     |> limit(1)
     |> Repo.one()
   end
 
-  def play_event_not_paused?(session_id) do
-    case get_last_play_event(session_id) do
+  def duration_not_closed?(type, session_id) do
+    counter_type =
+      case type do
+        :play ->
+          :pause
+
+        :rebuffering_start ->
+          :rebuffering_end
+
+        :fullscreen_enter ->
+          :fullscreen_exit
+      end
+
+    case get_last_event(type, session_id) do
       nil ->
         false
+
       event ->
         Event
         |> where([e], e.session_id == ^session_id)
-        |> where([e], e.name == :pause)
+        |> where([e], e.name == ^counter_type)
         |> where([e], e.timestamp > ^event.timestamp)
         |> limit(1)
         |> Repo.one()
         |> case do
           nil ->
             true
-          _ ->
+
+          result ->
             false
         end
     end
   end
 
-  def create_play(attrs) do
-    %Play{}
-    |> Play.changeset(attrs)
+  def create_duration(attrs) do
+    %Duration{}
+    |> Duration.changeset(attrs)
     |> Repo.insert!()
   end
 
-  def get_last_play(session_id) do
-    Play
-    |> where([p], p.session_id == ^session_id)
-    |> where([p], is_nil(p.to))
-    |> order_by([p], desc: p.from)
+  def get_last_duration(session_id, type \\ :play) do
+    Duration
+    |> where([d], d.session_id == ^session_id and d.type == ^type)
+    |> order_by([d], desc: d.timestamp)
     |> limit(1)
     |> Repo.one()
   end
 
-  def update_play(%Play{} = play, attrs) do
-    play
-    |> Play.changeset(attrs)
+  def update_duration(%Duration{} = duration, attrs) do
+    duration
+    |> Duration.changeset(attrs)
     |> Repo.update()
+  end
+
+  def update_rebuffering(duration, elapsed_time) do
+    if elapsed_time > @min_rebuffering_duration do
+      update_duration(duration, %{
+        elapsed_time: elapsed_time
+      })
+    else
+      delete_duration(duration)
+    end
+  end
+
+  def delete_duration(%Duration{} = duration) do
+    Repo.delete(duration)
   end
 
   def create_track(attrs) do
