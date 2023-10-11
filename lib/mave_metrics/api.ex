@@ -17,42 +17,62 @@ defmodule MaveMetrics.API do
 
   @ttl :timer.seconds(30)
 
-  alias MaveMetrics.Session.Play
+  alias MaveMetrics.Session.Duration
 
-  @decorate cacheable(cache: Cache, key: {Play, "plays" <> key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)}, opts: [ttl: @ttl])
+  @decorate cacheable(
+              cache: Cache,
+              key:
+                {Duration,
+                 "plays" <>
+                   key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)},
+              opts: [ttl: @ttl]
+            )
   def get_plays(query, interval, timeframe, minimum_watch_seconds) do
     interval = interval || @default_interval
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    result = Play
-    |> join(:left, [p], s in assoc(p, :session))
-    |> join(:left, [p, s], v in assoc(s, :video))
-    |> where_query(query)
-    |> where_timeframe(timeframe)
-    |> group_by([p, s, v], [fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp), p.session_id, s.platform, s.device_type, s.browser_type])
-    |> select_details(interval)
-    |> subquery()
-    |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
-    |> group_by([e], e.interval)
-    |> format_output()
-    |> Repo.all()
+    result =
+      Duration
+      |> where([d], d.type == :play)
+      |> join(:left, [d], s in assoc(d, :session))
+      |> join(:left, [d, s], v in assoc(s, :video))
+      |> where_query(query)
+      |> where_timeframe(timeframe)
+      |> group_by([d, s, v], [
+        fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        d.session_id,
+        s.platform,
+        s.device_type,
+        s.browser_type
+      ])
+      |> select_details(interval)
+      |> subquery()
+      |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
+      |> group_by([e], e.interval)
+      |> format_output()
+      |> Repo.all()
 
     result
   end
 
-  @decorate cacheable(cache: Cache, key: {Play, "engagement" <> key(query) <> key(timeframe) <> key(ranges)}, opts: [ttl: @ttl])
+  @decorate cacheable(
+              cache: Cache,
+              key: {Duration, "engagement" <> key(query) <> key(timeframe) <> key(ranges)},
+              opts: [ttl: @ttl]
+            )
   def get_engagement(query, timeframe, ranges) do
     timeframe = timeframe || @default_timeframe
     ranges = ranges || @default_ranges
 
     last_point =
-      Play
-      |> join(:left, [p], s in assoc(p, :session))
-      |> join(:left, [p, s], v in assoc(s, :video))
+      Duration
+      |> where([d], d.type == :play)
+      |> join(:left, [d], s in assoc(d, :session))
+      |> join(:left, [d, s], v in assoc(s, :video))
       |> where_query(query)
       |> where_timeframe(timeframe)
-      |> select([p, s, v], max(p.to))
+      |> select([d, s, v], max(d.to))
       |> Repo.one()
 
     if is_nil(last_point) do
@@ -60,60 +80,87 @@ defmodule MaveMetrics.API do
     else
       part = last_point / ranges
 
-      {:ok, result} = Repo.transaction(fn ->
-        0 .. ranges - 1 |> Enum.map(fn m ->
-          from_moment = part * m
-          to_moment = part * (m + 1)
+      {:ok, result} =
+        Repo.transaction(fn ->
+          0..(ranges - 1)
+          |> Enum.map(fn m ->
+            from_moment = part * m
+            to_moment = part * (m + 1)
 
-          result = Play
-          |> join(:left, [p], s in assoc(p, :session))
-          |> join(:left, [p, s], v in assoc(s, :video))
-          |> where_query(query)
-          |> where_timeframe(timeframe)
-          |> select([p, s, v], %{from: p.from, to: p.to})
-          |> subquery()
-          |> where([e], e.from >= ^from_moment and e.from <= ^from_moment) # starts within range
-          |> or_where([e], e.from < ^from_moment and e.to > ^to_moment) # starts before range and ends after range
-          |> or_where([e], e.from < ^from_moment and e.to >= ^from_moment and e.to <= ^to_moment) # starts before range and ends within range
-          |> Repo.all()
+            result =
+              Duration
+              |> where([d], d.type == :play)
+              |> join(:left, [d], s in assoc(d, :session))
+              |> join(:left, [d, s], v in assoc(s, :video))
+              |> where_query(query)
+              |> where_timeframe(timeframe)
+              |> select([d, s, v], %{from: d.from, to: d.to})
+              |> subquery()
+              # starts within range
+              |> where([e], e.from >= ^from_moment and e.from <= ^from_moment)
+              # starts before range and ends after range
+              |> or_where([e], e.from < ^from_moment and e.to > ^to_moment)
+              # starts before range and ends within range
+              |> or_where(
+                [e],
+                e.from < ^from_moment and e.to >= ^from_moment and e.to <= ^to_moment
+              )
+              |> Repo.all()
 
-          %{range: m, viewers: result |> Enum.count, range_time: %{from: from_moment, to: to_moment}}
-        end) |> Enum.sort(&(&1.range < &2.range))
-      end)
+            %{
+              range: m,
+              viewers: result |> Enum.count(),
+              range_time: %{from: from_moment, to: to_moment}
+            }
+          end)
+          |> Enum.sort(&(&1.range < &2.range))
+        end)
 
       result
     end
   end
 
-  @decorate cacheable(cache: Cache, key: {Play, "source" <> key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)}, opts: [ttl: @ttl])
+  @decorate cacheable(
+              cache: Cache,
+              key:
+                {Duration,
+                 "source" <>
+                   key(query) <> key(interval) <> key(timeframe) <> key(minimum_watch_seconds)},
+              opts: [ttl: @ttl]
+            )
   def get_sources(query, interval, timeframe, minimum_watch_seconds) do
     interval = interval || @default_interval
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    result = Play
-    |> join(:left, [p], s in assoc(p, :session))
-    |> join(:left, [p, s], v in assoc(s, :video))
-    |> where_query(query)
-    |> where_timeframe(timeframe)
-    |> group_by([p, s, v], [fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp), p.session_id, v.source_uri])
-    |> select([p, s, v], %{
-      host: fragment(~s|(? ->> ?)|, v.source_uri, "host"),
-      path: fragment(~s|(? ->> ?)|, v.source_uri, "path"),
-      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), p.timestamp),
-      elapsed_time: sum(p.elapsed_time)
-    })
-    |> subquery()
-    |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
-    |> having([e], sum(e.elapsed_time) >= ^minimum_watch_seconds)
-    |> group_by([e], [e.host, e.path, e.interval])
-    |> select([e], %{
-      interval: e.interval,
-      host: e.host,
-      path: e.path,
-      views: count(e.interval)
-    })
-    |> Repo.all()
+    result =
+      Duration
+      |> join(:left, [d], s in assoc(d, :session))
+      |> join(:left, [d, s], v in assoc(s, :video))
+      |> where_query(query)
+      |> where_timeframe(timeframe)
+      |> group_by([d, s, v], [
+        fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        d.session_id,
+        v.source_uri
+      ])
+      |> select([d, s, v], %{
+        host: fragment(~s|(? ->> ?)|, v.source_uri, "host"),
+        path: fragment(~s|(? ->> ?)|, v.source_uri, "path"),
+        interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        elapsed_time: sum(d.elapsed_time)
+      })
+      |> subquery()
+      |> where([e], e.elapsed_time >= ^minimum_watch_seconds)
+      |> having([e], sum(e.elapsed_time) >= ^minimum_watch_seconds)
+      |> group_by([e], [e.host, e.path, e.interval])
+      |> select([e], %{
+        interval: e.interval,
+        host: e.host,
+        path: e.path,
+        views: count(e.interval)
+      })
+      |> Repo.all()
 
     result
   end
@@ -129,22 +176,22 @@ defmodule MaveMetrics.API do
   end
 
   defp where_query(q, %{"video" => video_query} = _query) do
-    q |> where([p, s, v], fragment("? @> ?", v.metadata, ^video_query))
+    q |> where([d, s, v], fragment("? @> ?", v.metadata, ^video_query))
   end
 
   defp where_query(q, %{"session" => session_query} = _query) do
-    q |> where([p, s, v], fragment("? @> ?", s.metadata, ^session_query))
+    q |> where([d, s, v], fragment("? @> ?", s.metadata, ^session_query))
   end
 
   defp where_query(q, query) do
-    q |> where([p, s, v], v.identifier == ^query)
+    q |> where([d, s, v], v.identifier == ^query)
   end
 
   defp select_details(query, interval) do
     query
-    |> select([p, s, v], %{
-      interval: fragment("time_bucket('?', ?)", literal(^interval), p.timestamp),
-      elapsed_time: sum(p.elapsed_time),
+    |> select([d, s, v], %{
+      interval: fragment("time_bucket('?', ?)", literal(^interval), d.timestamp),
+      elapsed_time: sum(d.elapsed_time),
       platform_mac: case_when(s.platform == :mac, 1, 0),
       platform_ios: case_when(s.platform == :ios, 1, 0),
       platform_android: case_when(s.platform == :android, 1, 0),
@@ -204,20 +251,20 @@ defmodule MaveMetrics.API do
     {:ok, to} = DateTime.from_unix(to_timestamp)
 
     query
-    |> where([p, s, v], p.timestamp >= ^from)
-    |> where([p, s, v], p.timestamp <= ^to)
+    |> where([d, s, v], d.timestamp >= ^from)
+    |> where([d, s, v], d.timestamp <= ^to)
   end
 
   defp where_timeframe(query, timeframe) when is_number(timeframe) do
     {:ok, from} = DateTime.from_unix(timeframe)
 
     query
-    |> where([p, s, v], p.timestamp >= ^from)
+    |> where([d, s, v], d.timestamp >= ^from)
   end
 
   defp where_timeframe(query, timeframe) do
     query
-    |> where([p, s, v], p.timestamp >= fragment("now() - interval '?'", literal(^timeframe)))
+    |> where([d, s, v], d.timestamp >= fragment("now() - interval '?'", literal(^timeframe)))
   end
 
   defp key(%{} = query) do

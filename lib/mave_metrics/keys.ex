@@ -29,7 +29,7 @@ defmodule MaveMetrics.Keys do
 
   def revoke_key(%{"key" => key}) do
     with %Key{} = key <- Key |> where([k], k.key == ^key) |> Repo.one(),
-     {:ok, _} <- key |> Key.changeset(%{disabled_at: DateTime.utc_now()}) |> Repo.update() do
+         {:ok, _} <- key |> Key.changeset(%{disabled_at: DateTime.utc_now()}) |> Repo.update() do
       :ok
     else
       _ -> :error
@@ -51,6 +51,7 @@ defmodule MaveMetrics.Keys do
     |> case do
       {:ok, result} ->
         {:ok, result.key}
+
       {:error, reason} ->
         {:error, reason}
     end
