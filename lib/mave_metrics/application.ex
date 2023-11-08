@@ -20,12 +20,14 @@ defmodule MaveMetrics.Application do
       {Phoenix.PubSub, name: MaveMetrics.PubSub},
       # Start Finch
       {Finch, name: MaveMetrics.Finch},
+      # Start cluster
+      {DNSCluster, query: Application.get_env(:mave_metrics, :dns_cluster_query) || :ignore},
       # Start the Endpoint (http/https)
       MaveMetricsWeb.Endpoint,
       # Start a worker by calling: MaveMetrics.Worker.start_link(arg)
       # {MaveMetrics.Worker, arg}
       # Start cache
-      MaveMetrics.PartitionedCache
+      MaveMetrics.PartitionedCache,
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -14,9 +14,11 @@ kill_timeout = "5s"
 
 [env]
   PHX_HOST = "mave-metrics.internal"
+  DNS_CLUSTER_QUERY = "mave-metrics.internal"
   PORT = "3000"
   PRIMARY_REGION = "ams"
   ROOT_URL = "http://mave-metrics.internal"
+  RELEASE_COOKIE = "3e0vnhSGgY-ZaVA4n3Djv5OCVpoiR4b2voHB2UvYrL4loe3av2XLQA=="
 
 [[services]]
   protocol = "tcp"

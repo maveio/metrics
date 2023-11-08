@@ -30,6 +30,8 @@ if config_env() == :prod do
 
   maybe_ipv6 = if System.get_env("ECTO_IPV6"), do: [:inet6], else: []
 
+  config :mave_metrics, dns_cluster_query: System.get_env("DNS_CLUSTER_QUERY")
+
   config :mave_metrics, MaveMetrics.Repo,
     # ssl: true,
     url: database_url,
