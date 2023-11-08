@@ -33,34 +33,35 @@ defmodule MaveMetrics.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
-      {:phoenix, "~> 1.7.0-rc.2", override: true},
+      {:phoenix, "~> 1.7"},
       {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.6"},
-      {:postgrex, ">= 0.0.0"},
+      {:ecto_sql, "~> 3.10"},
+      {:postgrex, "~> 0.17.3"},
       {:phoenix_html, "~> 3.0"},
-      {:phoenix_live_reload, "~> 1.2", only: :dev},
-      {:phoenix_live_view, "~> 0.18.3"},
+      {:phoenix_live_reload, "~> 1.4", only: :dev},
+      {:phoenix_live_view, "~> 0.20.1"},
       {:heroicons, "~> 0.5"},
       {:floki, ">= 0.30.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.7.2"},
+      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.5", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.1.8", runtime: Mix.env() == :dev},
       {:swoosh, "~> 1.3"},
-      {:finch, "~> 0.13"},
+      {:finch, "~> 0.16.0"},
       {:telemetry_metrics, "~> 0.6"},
       {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.20"},
-      {:jason, "~> 1.2"},
-      {:plug_cowboy, "~> 2.5"},
-      {:timescale, "~> 0.0.1-alpha.5"},
+      {:jason, "~> 1.4"},
+      {:plug_cowboy, "~> 2.6"},
+      {:timescale, "~> 0.1.1"},
       {:cors_plug, "~> 3.0"},
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
       {:morphix, "~> 0.8.1"},
-      {:ua_inspector, "~> 3.1"},
+      {:ua_inspector, "~> 3.6"},
       {:redirect, "~> 0.4.0"},
       {:nebulex, "~> 2.5"},
-      {:shards, "~> 1.0"},
-      {:decorator, "~> 1.4"}
+      {:shards, "~> 1.1"},
+      {:decorator, "~> 1.4"},
+      {:dns_cluster, "~> 0.1.1"}
     ]
   end
 
@@ -77,7 +78,12 @@ defmodule MaveMetrics.MixProject do
       "ecto.reset": ["ecto.drop", "ecto.setup"],
       test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
-      "assets.deploy": ["cmd npm install --prefix assets", "tailwind default --minify", "esbuild default --minify", "phx.digest"]
+      "assets.deploy": [
+        "cmd npm install --prefix assets",
+        "tailwind default --minify",
+        "esbuild default --minify",
+        "phx.digest"
+      ]
     ]
   end
 end

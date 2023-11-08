@@ -100,7 +100,7 @@ defmodule MaveMetrics.Stats do
           nil ->
             true
 
-          result ->
+          _result ->
             false
         end
     end
