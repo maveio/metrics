@@ -10,29 +10,24 @@ defmodule MaveMetricsWeb.SessionChannel do
         %{"identifier" => identifier, "key" => key} = params,
         %{id: _session_id, assigns: %{ua: ua}} = socket
       ) do
-    with %UAInspector.Result.Bot{name: _name} <- UAInspector.parse(ua) do
-      {:error, %{reason: "bot"}}
-    else
-      parsed_ua ->
-        case Keys.valid_key?(key) do
-          {:ok, key} ->
-            source_url = params["source_url"] || socket.assigns.source_url
+    case Keys.valid_key?(key) do
+      {:ok, key} ->
+        source_url = params["source_url"] || socket.assigns.source_url
 
-            # we're not storing the complete user-agent string to make it impossible to make a fingerprint
-            session_attrs =
-              %{
-                metadata: params["session_data"]
-              }
-              |> Map.merge(parsed_ua |> session_info())
+        # we're not storing the complete user-agent string to make it impossible to make a fingerprint
+        session_attrs =
+          %{
+            metadata: params["session_data"]
+          }
+          |> Map.merge(ua)
 
-            {:ok, video} = Stats.find_or_create_video(source_url, identifier, params["metadata"])
+        {:ok, video} = Stats.find_or_create_video(source_url, identifier, params["metadata"])
 
-            {:ok, session} = Stats.create_session(video, key, session_attrs)
-            {:ok, socket |> assign(:session_id, session.id) |> monitor(self())}
+        {:ok, session} = Stats.create_session(video, key, session_attrs)
+        {:ok, socket |> assign(:session_id, session.id) |> monitor(self())}
 
-          {:error, _reason} ->
-            {:error, %{reason: "invalid key"}}
-        end
+      {:error, _reason} ->
+        {:error, %{reason: "invalid key"}}
     end
   end
 
