@@ -1,5 +1,5 @@
-ARG BUILDER_IMAGE="hexpm/elixir:1.14.1-erlang-25.1.2-debian-bullseye-20221004-slim"
-ARG RUNNER_IMAGE="debian:bullseye-20221004-slim"
+ARG BUILDER_IMAGE="hexpm/elixir:1.14.1-erlang-25.2.1-debian-bullseye-20230109-slim"
+ARG RUNNER_IMAGE="debian:bullseye-20231009-slim"
 
 FROM ${BUILDER_IMAGE} AS builder
 
