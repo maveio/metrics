@@ -19,6 +19,8 @@ defmodule MaveMetrics.Stats do
 
   # returns existing videos that aren't part of that video
   def find_or_create_video(source_url, identifier, metadata) do
+    source_url = source_url |> URI.parse() |> Map.take([:host, :path])
+
     case get_by_source_url_and_identifier_and_metadata(source_url, identifier, metadata) do
       %Video{id: _id} = video ->
         {:ok, video}
