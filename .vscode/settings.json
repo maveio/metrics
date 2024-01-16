@@ -4,7 +4,7 @@
   "files.trimTrailingWhitespace": true,
   "files.insertFinalNewline": true,
   "editor.formatOnType": true,
-  "editor.wordBasedSuggestions": false,
+  "editor.wordBasedSuggestions": "off",
   "editor.trimAutoWhitespace": false,
   "editor.acceptSuggestionOnEnter": "off",
   "editor.codeActionsOnSave": [
