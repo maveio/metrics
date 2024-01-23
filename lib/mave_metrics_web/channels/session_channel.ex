@@ -120,8 +120,8 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "track_set", "language" => ""} = params,
-        %{assigns: %{session_id: session_id}} = socket
+        %{"name" => "track_set", "language" => ""},
+        %{assigns: %{session_id: _session_id}} = socket
       ) do
     {:noreply, socket}
   end
