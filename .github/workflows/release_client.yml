@@ -1,0 +1,104 @@
+name: Release client package to NPM
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "client/**"
+  workflow_dispatch:
+    inputs:
+      release-type:
+        description: "Release type (one of): patch, minor, major, prepatch, preminor, premajor, prerelease"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2.3.4
+
+      - name: Import GPG key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          registry-url: https://registry.npmjs.org/
+          node-version: "18"
+
+      - name: Git configuration
+        run: |
+          git config --global user.email "${{ steps.import-gpg.outputs.email }}"
+          git config --global user.name "${{ steps.import-gpg.outputs.name }}"
+
+      - name: Bump release version
+        if: startsWith(github.event.inputs.release-type, 'pre') != true
+        run: |
+          NEW_VERSION=$(npm --no-git-tag-version version ${{ github.event.inputs.release-type }})
+          echo "NEW_VERSION=client-$NEW_VERSION" >> $GITHUB_ENV
+          echo "RELEASE_TAG=latest" >> $GITHUB_ENV
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release-type }}
+        working-directory: client
+
+      - name: Bump pre-release version
+        if: startsWith(github.event.inputs.release-type, 'pre')
+        run: |
+          NEW_VERSION=$(npm --no-git-tag-version --preid=beta version ${{ github.event.inputs.release-type }})
+          echo "NEW_VERSION=client-$NEW_VERSION" >> $GITHUB_ENV
+          echo "RELEASE_TAG=beta" >> $GITHUB_ENV
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release-type }}
+        working-directory: client
+
+      - name: Update changelog
+        uses: superfaceai/release-changelog-action@v1
+        with:
+          path-to-changelog: client/CHANGELOG.md
+          version: ${{ env.NEW_VERSION }}
+          operation: release
+
+      - name: Get version changelog
+        uses: superfaceai/release-changelog-action@v1
+        with:
+          path-to-changelog: client/CHANGELOG.md
+          version: ${{ env.NEW_VERSION }}
+          operation: read
+
+      - name: Update GitHub release documentation
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.NEW_VERSION }}
+          body: ${{ steps.get-changelog.outputs.changelog }}
+          prerelease: ${{ startsWith(github.event.inputs.release-type, 'pre') }}
+
+      - name: Commit CHANGELOG.md and package.json changes and create tag
+        run: |
+          git add client/package.json client/CHANGELOG.md
+          git commit -m "release ${{ env.NEW_VERSION }}"
+        working-directory: client
+
+      - name: Install dependencies
+        run: yarn install
+        working-directory: client
+
+      - name: Push to protected branch
+        uses: CasperWA/push-protected@v2
+        with:
+          token: ${{ secrets.PUSH_TO_PROTECTED_BRANCH }}
+          branch: main
+          unprotect_reviews: true
+          tags: true
+
+      - name: Publish
+        run: yarn publish --verbose --access public --tag ${{ env.RELEASE_TAG }}
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_ACCESS_TOKEN }}
+        working-directory: client
