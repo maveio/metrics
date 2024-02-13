@@ -1,32 +1,34 @@
 # The directory Mix will write compiled artifacts to.
-/_build/
+/server/_build/
 
 # If you run "mix test --cover", coverage assets end up here.
-/cover/
+/server/cover/
 
 # The directory Mix downloads your dependencies sources to.
-/deps/
+/server/deps/
 
 # Where 3rd-party dependencies like ExDoc output generated docs.
-/doc/
+/server/doc/
+
+/server/.elixir_ls/
 
 # Ignore .fetch files in case you like to edit your project deps locally.
-/.fetch
+/server/.fetch
 
 # If the VM crashes, it generates a dump, let's ignore it too.
-erl_crash.dump
+/server/erl_crash.dump
 
 # Also ignore archive artifacts (built via "mix archive.build").
-*.ez
+/server/*.ez
 
 # Ignore package tarball (built via "mix hex.build").
-mave_metrics-*.tar
+/server/mave_metrics-*.tar
 
 # Ignore assets that are produced by build tools.
-/priv/static/assets/
+/server/priv/static/assets/
 
 # Ignore digested assets cache.
-/priv/static/cache_manifest.json
+/server/priv/static/cache_manifest.json
 
 # In case you use Node.js/npm, you want to ignore these.
 npm-debug.log
@@ -34,3 +36,9 @@ npm-debug.log
 _pgdata
 node_modules
 .DS_Store
+
+/client/dist/
+
+.env
+.envrc
+

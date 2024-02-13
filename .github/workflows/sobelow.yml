@@ -1,24 +1,16 @@
-# This workflow uses actions that are not certified by GitHub.
-# They are provided by a third-party and are governed by
-# separate terms of service, privacy policy, and support
-# documentation.
-#
-# Sobelow is a security-focused static analysis tool for the Phoenix framework. https://sobelow.io/
-#
-# To use this workflow, you must have GitHub Advanced Security (GHAS) enabled for your repository.
-#
-# Instructions:
-# 2. Follow the annotated workflow below and make any necessary modifications then save the workflow to your repository
-#    and review the "Security" tab once the action has run.
 name: Sobelow
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths:
+      - "server/**"
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
+    paths:
+      - "server/**"
   schedule:
-    - cron: '18 11 * * 0'
+    - cron: "18 11 * * 0"
 
 permissions:
   contents: read

@@ -11,17 +11,20 @@
 
 # metrics
 
-![version](https://img.shields.io/github/v/tag/maveio/metrics-server?color=5850ec&label=version)
-[![CodeQL](https://img.shields.io/github/actions/workflow/status/maveio/metrics-server/sobelow.yml?label=Sobelow&color=5850ec)](https://github.com/maveio/metrics-server/actions/workflows/github-code-scanning/sobelow.yml)
+![version](https://img.shields.io/github/v/tag/maveio/metrics?color=5850ec&label=version)
+[![CodeQL](https://img.shields.io/github/actions/workflow/status/maveio/metrics/sobelow.yml?label=Sobelow&color=5850ec)](https://github.com/maveio/metrics/actions/workflows/github-code-scanning/sobelow.yml)
 [![Discord server](https://img.shields.io/badge/Discord-mave.io-5850ec)](https://discord.gg/SBCKwnwHkC)
 
 We believe privacy advocates are doing a great job by creating better website analytics tools like [Plausible](https://plausible.io/) and [Simple Analytics](https://www.simpleanalytics.com/). However, video services like YouTube and Vimeo are becoming increasingly privacy invasive. They are essentially Google Analytics on steroids. We think that if you want to understand how your videos are performing on your site, you don't need to track your users. Instead, mave metrics tracks usage, providing valuable insights without compromising user privacy.
 
-[Getting started](#getting-started) •
-[Installation](#installation) •
-[Configuration](#configuration) •
-[API](#api) •
-[Client](https://github.com/maveio/metrics)
+- Server:
+  [Installation](#installation) •
+  [Configuration](#configuration) •
+  [API](#api)
+
+- Client:
+  [Install](#install) •
+  [Usage](#usage)
 
 </div>
 
@@ -29,9 +32,10 @@ We believe privacy advocates are doing a great job by creating better website an
 <img src="https://github.com/maveio/metrics/assets/238946/08d16cf5-32b1-47c6-9ec3-fbd094fb7df3"  alt="example" style="width: 50%;">
 
 _This is not part of this repo, but an example what you can build with it (this is the data page on [mave.io](https://mave.io))_
+
 </p>
 
-## Getting started
+# Server
 
 This system runs on Elixir with Postgres and utilizes TimescaleDB. All video events are aggregated per session and sent over websockets. Each session is unique, as we don't track users. Therefore, when a user refreshes, it is considered a new view.
 
@@ -49,39 +53,15 @@ It will run on http://localhost:3000/ by default, with example videos and an exa
 
 You can start the server without setting any environment variables. However, once you put it into production, we recommend setting the following environment variables (refer to `.envrc`):
 
-
 ```bash
 METRICS_AUTH_ENABLED=true
 METRICS_USER=mave
 METRICS_PASSWORD=password
 ```
 
-There is a client-side library required to send the events to the server, which can be found here: https://github.com/maveio/metrics.
-
-By default, the library will connect to `ws://localhost:3000/socket`. To modify this behavior, you'll need to import the library into your project and change its host by following these steps:
-
-```javascript
-import { Metrics } from '@maveio/metrics';
-Metrics.config = {
-    socketPath: 'wss://{your domain here}/socket',
-    apiKey: '{your api key here}',
-}
-```
-
-To collect video events, you will need to include the following script on your page:
-
-```javascript
-const metrics = new Metrics("#my_video", "label name", {
-  custom_query_id: 1234,
-})
-metrics.monitor()
-```
-
 ⚠️ Use the API to generate a new API key before going to production.
 
 ## API
-
-See example requests on [Run with Postman](https://documenter.getpostman.com/view/7853984/2s93eU2uQy)
 
 ### `/api/v1/plays` (POST or GET)
 
@@ -93,74 +73,37 @@ An example response:
 
 ```json
 {
-    "views": [
-        {
-            "browser": {
-                "brave": 0,
-                "chrome": 1,
-                "edge": 0,
-                "firefox": 0,
-                "ie": 0,
-                "opera": 0,
-                "other": 0,
-                "safari": 0
-            },
-            "device_type": {
-                "desktop": 1,
-                "mobile": 0,
-                "other": 0,
-                "tablet": 0
-            },
-            "interval": "2023-05-02T00:00:00.000000",
-            "platform": {
-                "android": 0,
-                "ios": 0,
-                "linux": 0,
-                "mac": 1,
-                "other": 0,
-                "windows": 0
-            },
-            "total_view_time": 6.267,
-            "views": 1
-        }
-    ]
-}
-```
-
-### `/api/v1/engagement` (POST or GET)
-
-Engagement is used to determine the portions of a video that have been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) using the `identifier` or `query` for metadata, set a `timeframe` to define the desired period, and indicate the number of `ranges` as an integer to segment the play duration of sessions.
-
-Example response:
-
-```json
-{
-    "engagement": [
-        {
-            "range": 0,
-            "range_time": {
-                "from": 0.0,
-                "to": 4.192
-            },
-            "viewers": 1
-        },
-        {
-            "range": 1,
-            "range_time": {
-                "from": 4.192,
-                "to": 8.384
-            },
-            "viewers": 1
-        },
-        {
-            "range": 2,
-            "range_time": {
-                "from": 8.384,
-                "to": 12.576
-            },
-            "viewers": 1
-        }
-    ]
+  "views": [
+    {
+      "browser": {
+        "brave": 0,
+        "chrome": 1,
+        "edge": 0,
+        "firefox": 0,
+        "ie": 0,
+        "opera": 0,
+        "other": 0,
+        "safari": 0
+      },
+      "device_type": {
+        "desktop": 1,
+        "mobile": 0,
+        "other": 0,
+        "tablet": 0
+      },
+      "interval": "2023-05-02T00:00:00.000000",
+      "platform": {
+        "android": 0,
+        "ios": 0,
+        "linux": 0,
+        "mac": 1,
+        "other": 0,
+        "windows": 0
+      },
+      "total_view_time": 6.267,
+      "views": 1
+    }
+  ]
 }
 ```
 
@@ -174,26 +117,25 @@ An example response:
 
 ```json
 {
-    "sources": [
-        {
-            "interval": "2023-04-02T08:29:00.000000",
-            "path": "http://example.com/",
-            "views": 1
-        },
-        {
-            "interval": "2023-05-02T08:29:00.000000",
-            "path": "http://example.com/",
-            "views": 1
-        },
-        {
-            "interval": "2023-05-02T08:41:00.000000",
-            "path": "http://example.com/",
-            "views": 1
-        }
-    ]
+  "sources": [
+    {
+      "interval": "2023-04-02T08:29:00.000000",
+      "path": "http://example.com/",
+      "views": 1
+    },
+    {
+      "interval": "2023-05-02T08:29:00.000000",
+      "path": "http://example.com/",
+      "views": 1
+    },
+    {
+      "interval": "2023-05-02T08:41:00.000000",
+      "path": "http://example.com/",
+      "views": 1
+    }
+  ]
 }
 ```
-
 
 ### `/api/v1/keys` (POST)
 
@@ -203,7 +145,7 @@ An example response:
 
 ```json
 {
-    "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+  "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
 }
 ```
 
@@ -215,12 +157,12 @@ An example response:
 
 ```json
 {
-    "keys": [
-        {
-            "disabled_at": null,
-            "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
-        }
-    ]
+  "keys": [
+    {
+      "disabled_at": null,
+      "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+    }
+  ]
 }
 ```
 
@@ -232,6 +174,69 @@ An example response:
 
 ```json
 {
-    "message": "Key revoked"
+  "message": "Key revoked"
 }
+```
+
+# Client
+
+## Install
+
+Install the package within your project
+
+```
+npm install @maveio/metrics
+```
+
+## Usage
+
+```javascript
+import { Metrics } from "@maveio/metrics";
+Metrics.config = {
+  socketPath: "wss://{your domain here}/socket",
+  apiKey: "{your api key here}",
+};
+```
+
+To collect video events you will need to create an Metrics instance using each `HTMLVideoElement` or `Hls` object:
+
+`new Metrics(<querySelector | HTMLMediaElement | Hls object>, <video query metadata>)`
+
+For instance, you can do this in your page:
+
+```javascript
+const metrics = new Metrics("#my_video", {
+  vid: 1234,
+});
+metrics.monitor();
+```
+
+When you are using the hls.js library you can use the following code to monitor the video:
+
+```javascript
+const video = document.getElementById("hls_video");
+const videoSrc = "https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8";
+
+const videoData = {
+  vid: 1234, // add your own video id here, or any other metadata that you want to query
+};
+
+if (Hls.isSupported()) {
+  const hls = new Hls();
+  hls.loadSource(videoSrc);
+  hls.attachMedia(video);
+  new Metrics(hls, videoData).monitor();
+} else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+  video.src = videoSrc;
+  new Metrics("#hls_video", videoData).monitor();
+}
+```
+
+Other options:
+
+```javascript
+const monitoringVideo = new Metrics("#hls_video", videoData).monitor();
+
+// in some disconnect callback that removes the video from your view
+monitoringVideo.demonitor();
 ```
