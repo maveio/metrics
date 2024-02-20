@@ -8,6 +8,9 @@ primary_region = "ams"
 kill_signal = "SIGTERM"
 kill_timeout = "5s"
 
+[[vm]]
+size = "shared-cpu-2x"
+
 [deploy]
 release_command = "/app/bin/migrate"
 strategy = "rolling"
