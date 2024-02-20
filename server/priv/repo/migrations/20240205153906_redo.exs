@@ -36,20 +36,20 @@ defmodule MaveMetrics.Repo.Migrations.Redo do
     )
 
     create_if_not_exists table(:sessions, primary_key: false) do
-      add(:timestamp, :utc_datetime_usec, null: false, primary_key: true)
+      add(:timestamp, :timestamptz, null: false, primary_key: true)
       add(:id, :bigserial, null: false, primary_key: true)
 
       add(:browser, :browser)
       add(:platform, :platform)
       add(:device, :device)
 
-      add(:uri_host, :string)
+      add(:uri_host, :text)
       add(:uri_path, :text)
 
       add(:video_id, references(:videos), null: false)
     end
 
-    create_if_not_exists(unique_index(:sessions, [:id, :timestamp]))
+    create_if_not_exists(unique_index(:sessions, [:timestamp, :id]))
     create_if_not_exists(index(:sessions, [:video_id]))
 
     create_hypertable(:sessions, :timestamp)
@@ -57,8 +57,7 @@ defmodule MaveMetrics.Repo.Migrations.Redo do
     execute("CREATE TYPE video_event AS ENUM ('play', 'pause')")
 
     create_if_not_exists table(:events, primary_key: false) do
-      add(:id, :bigserial, null: false, primary_key: true)
-      add(:timestamp, :utc_datetime_usec, null: false, primary_key: true)
+      add(:timestamp, :timestamptz, null: false, primary_key: true)
 
       add(:video_time, :float)
 
@@ -69,16 +68,20 @@ defmodule MaveMetrics.Repo.Migrations.Redo do
       add(:session_id, :bigint, null: false, primary_key: true)
     end
 
-    create_if_not_exists(unique_index(:events, [:id, :timestamp]))
+    create_if_not_exists(unique_index(:events, [:timestamp, :session_id]))
     create_if_not_exists(index(:events, [:session_id]))
 
     create_hypertable(:events, :timestamp)
 
+    execute("""
+     ALTER TABLE sessions SET (timescaledb.compress, timescaledb.compress_segmentby = 'id, video_id')
+    """)
+
+    # enable_hypertable_compression(:sessions, segment_by: [:id, :video_id])
+    add_compression_policy(:sessions, "1d")
+
     enable_hypertable_compression(:events, segment_by: :session_id)
     add_compression_policy(:events, "1d")
-
-    enable_hypertable_compression(:sessions, segment_by: :video_id)
-    add_compression_policy(:sessions, "1d")
 
     # https://www.timescale.com/learn/postgresql-materialized-views-and-where-to-find-them
     execute("""
