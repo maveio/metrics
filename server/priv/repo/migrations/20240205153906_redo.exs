@@ -73,11 +73,7 @@ defmodule MaveMetrics.Repo.Migrations.Redo do
 
     create_hypertable(:events, :timestamp)
 
-    execute("""
-     ALTER TABLE sessions SET (timescaledb.compress, timescaledb.compress_segmentby = 'id, video_id')
-    """)
-
-    # enable_hypertable_compression(:sessions, segment_by: [:id, :video_id])
+    enable_hypertable_compression(:sessions, segment_by: "id, video_id")
     add_compression_policy(:sessions, "1d")
 
     enable_hypertable_compression(:events, segment_by: :session_id)
