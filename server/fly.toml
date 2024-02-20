@@ -3,7 +3,7 @@
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "mave-metrics"
+app = "mave-data"
 primary_region = "ams"
 kill_signal = "SIGTERM"
 kill_timeout = "5s"
@@ -13,11 +13,11 @@ release_command = "/app/bin/migrate"
 strategy = "rolling"
 
 [env]
-PHX_HOST = "mave-metrics.internal"
-DNS_CLUSTER_QUERY = "mave-metrics.internal"
+PHX_HOST = "mave-data.internal"
+DNS_CLUSTER_QUERY = "mave-data.internal"
 PORT = "3000"
 PRIMARY_REGION = "ams"
-ROOT_URL = "http://mave-metrics.internal"
+ROOT_URL = "http://mave-data.internal"
 RELEASE_COOKIE = "3e0vnhSGgY-ZaVA4n3Djv5OCVpoiR4b2voHB2UvYrL4loe3av2XLQA=="
 
 [[services]]
@@ -25,7 +25,7 @@ protocol = "tcp"
 internal_port = 3000
 processes = ["app"]
 [[services.ports]]
-  port = 3000
+port = 3000
 [services.concurrency]
 type = "connections"
 hard_limit = 2048
