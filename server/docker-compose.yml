@@ -5,9 +5,9 @@ services:
   metrics:
     hostname: mave-metrics.internal
     build:
-      dockerfile: ../mave-metrics/Dockerfile.dev
+      dockerfile: ./Dockerfile.dev
     volumes:
-      - ../mave-metrics/:/app
+      - ./:/app
     ports:
       - "3000:3000"
     environment:
