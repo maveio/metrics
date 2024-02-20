@@ -27,6 +27,7 @@ defmodule MaveMetricsWeb.SessionChannel do
          socket
          |> assign(:session_attrs, session_attrs)
          |> assign(:session_id, nil)
+         |> assign(:video_id, nil)
          |> assign(:key, key)
          |> assign(:metadata, metadata)}
 
@@ -48,12 +49,13 @@ defmodule MaveMetricsWeb.SessionChannel do
           assigns: %{
             session_attrs: session_attrs,
             session_id: session_id,
+            video_id: video_id,
             metadata: metadata,
             key: key
           }
         } = socket
       )
-      when is_nil(session_id) do
+      when is_nil(session_id) and is_nil(video_id) do
     # only create video and session once play starts
     {:ok, video} = Stats.find_or_create_video(key, metadata)
     {:ok, session} = Stats.create_session(video, session_attrs)
@@ -61,7 +63,8 @@ defmodule MaveMetricsWeb.SessionChannel do
     Pipeline.add(%{
       type: :play,
       video_time: from,
-      session_id: session.id
+      session_id: session.id,
+      video_id: video.id
     })
 
     {
@@ -71,6 +74,7 @@ defmodule MaveMetricsWeb.SessionChannel do
       |> assign(:metadata, nil)
       |> assign(:key, nil)
       |> assign(:session_id, session.id)
+      |> assign(:video_id, video.id)
       |> monitor(self())
     }
   end
@@ -79,12 +83,13 @@ defmodule MaveMetricsWeb.SessionChannel do
   def handle_in(
         "event",
         %{"name" => "play", "from" => from},
-        %{assigns: %{session_id: session_id}} = socket
+        %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       ) do
     Pipeline.add(%{
       type: :play,
       video_time: from,
-      session_id: session_id
+      session_id: session_id,
+      video_id: video_id
     })
 
     {:noreply, socket}
@@ -94,12 +99,13 @@ defmodule MaveMetricsWeb.SessionChannel do
   def handle_in(
         "event",
         %{"name" => "pause", "to" => to},
-        %{assigns: %{session_id: session_id}} = socket
+        %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       ) do
     Pipeline.add(%{
       type: :pause,
       video_time: to,
-      session_id: session_id
+      session_id: session_id,
+      video_id: video_id
     })
 
     {:noreply, socket}
@@ -111,24 +117,25 @@ defmodule MaveMetricsWeb.SessionChannel do
   end
 
   # https://github.com/phoenixframework/phoenix/issues/3844
-  defp monitor(%{assigns: %{session_id: session_id}} = socket, pid) do
+  defp monitor(%{assigns: %{session_id: session_id, video_id: video_id}} = socket, pid) do
     Task.Supervisor.start_child(MaveMetrics.TaskSupervisor, fn ->
       Process.flag(:trap_exit, true)
       ref = Process.monitor(pid)
 
       receive do
         {:DOWN, ^ref, :process, _pid, _reason} ->
-          on_disconnect(session_id)
+          on_disconnect(session_id, video_id)
       end
     end)
 
     socket
   end
 
-  defp on_disconnect(session_id) do
+  defp on_disconnect(session_id, video_id) do
     Pipeline.add(%{
       type: :disconnect,
-      session_id: session_id
+      session_id: session_id,
+      video_id: video_id
     })
   end
 end

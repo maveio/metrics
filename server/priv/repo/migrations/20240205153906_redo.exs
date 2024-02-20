@@ -66,17 +66,21 @@ defmodule MaveMetrics.Repo.Migrations.Redo do
       # Foreign key constraints referencing a hypertable are not supported:
       # add(:session_id, references(:sessions), null: false)
       add(:session_id, :bigint, null: false, primary_key: true)
+
+      add(:video_id, references(:videos), null: false)
     end
 
     create_if_not_exists(unique_index(:events, [:timestamp, :session_id]))
     create_if_not_exists(index(:events, [:session_id]))
 
+    create_if_not_exists(index(:events, [:video_id]))
+
     create_hypertable(:events, :timestamp)
 
-    enable_hypertable_compression(:sessions, segment_by: "id, video_id")
+    enable_hypertable_compression(:sessions, segment_by: :video_id)
     add_compression_policy(:sessions, "1d")
 
-    enable_hypertable_compression(:events, segment_by: :session_id)
+    enable_hypertable_compression(:events, segment_by: :video_id)
     add_compression_policy(:events, "1d")
 
     # https://www.timescale.com/learn/postgresql-materialized-views-and-where-to-find-them

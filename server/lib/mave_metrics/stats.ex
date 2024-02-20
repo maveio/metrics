@@ -53,6 +53,14 @@ defmodule MaveMetrics.Stats do
     |> Repo.insert(returning: true)
   end
 
+  def create_event(%Video{} = video, %Session{} = session, attrs) do
+    %Event{}
+    |> Event.changeset(attrs)
+    |> Changeset.put_assoc(:video, video)
+    |> Changeset.put_assoc(:session, session)
+    |> Repo.insert!()
+  end
+
   def create_event(attrs) do
     %Event{}
     |> Event.changeset(attrs)
@@ -79,7 +87,7 @@ defmodule MaveMetrics.Stats do
     Repo.insert_all(Event, disconnects)
   end
 
-  def finish_session(%{timestamp: timestamp, session_id: session_id}) do
+  def finish_session(%{timestamp: timestamp, session_id: session_id, video_id: video_id}) do
     # check if last event with session_id is a pause event, otherwise get the last play event
     last_event =
       Event
@@ -94,7 +102,7 @@ defmodule MaveMetrics.Stats do
         elapsed_time = DateTime.diff(timestamp, last_event.timestamp, :microsecond) / 1_000_000
         to = last_event.from + elapsed_time
 
-        %{type: :pause, to: to, timestamp: timestamp, session_id: session_id}
+        %{type: :pause, to: to, timestamp: timestamp, session_id: session_id, video_id: video_id}
 
       _ ->
         # last event is a pause event, do nothing

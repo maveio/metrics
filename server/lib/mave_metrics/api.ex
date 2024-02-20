@@ -47,11 +47,13 @@ defmodule MaveMetrics.API do
     |> where([d], d.session_watched_seconds >= ^min_watched_seconds)
     |> group_by([d], [
       fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
+      d.session_id,
       d.platform,
       d.device,
       d.browser
     ])
     |> select([d], %{
+      session_id: d.session_id,
       interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
       total_view_time: sum(d.session_watched_seconds),
       platform_mac: case_when(d.platform == "mac", 1, 0),
@@ -77,7 +79,7 @@ defmodule MaveMetrics.API do
     |> group_by([d], [d.interval])
     |> select([e], %{
       interval: e.interval,
-      views: count(e.interval),
+      views: count(e.session_id),
       total_view_time: sum(e.total_view_time),
       platform: %{
         mac: sum(e.platform_mac),

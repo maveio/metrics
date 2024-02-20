@@ -4,7 +4,7 @@ defmodule MaveMetrics.Event do
 
   @primary_key false
 
-  @required_fields ~w(type timestamp video_time session_id)a
+  @required_fields ~w(type timestamp video_time session_id video_id)a
   @optional_fields ~w()a
 
   schema "events" do
@@ -20,6 +20,7 @@ defmodule MaveMetrics.Event do
     )
 
     belongs_to(:session, MaveMetrics.Session)
+    belongs_to(:video, MaveMetrics.Video)
   end
 
   @doc false
