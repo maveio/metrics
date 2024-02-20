@@ -9,7 +9,7 @@
   </a>
 </p>
 
-# metrics
+# video metrics
 
 ![version](https://img.shields.io/github/v/tag/maveio/metrics?color=5850ec&label=version)
 [![CodeQL](https://img.shields.io/github/actions/workflow/status/maveio/metrics/sobelow.yml?label=Sobelow&color=5850ec)](https://github.com/maveio/metrics/actions/workflows/github-code-scanning/sobelow.yml)
