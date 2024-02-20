@@ -44,7 +44,7 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "play", "from" => from},
+        %{"name" => "play", "from" => video_time},
         %{
           assigns: %{
             session_attrs: session_attrs,
@@ -55,14 +55,15 @@ defmodule MaveMetricsWeb.SessionChannel do
           }
         } = socket
       )
-      when is_nil(session_id) and is_nil(video_id) do
+      when is_nil(session_id) and is_nil(video_id) and not is_nil(video_time) and
+             (is_integer(video_time) or is_float(video_time)) do
     # only create video and session once play starts
     {:ok, video} = Stats.find_or_create_video(key, metadata)
     {:ok, session} = Stats.create_session(video, session_attrs)
 
     Pipeline.add(%{
       type: :play,
-      video_time: from,
+      video_time: video_time,
       session_id: session.id,
       video_id: video.id
     })
@@ -82,12 +83,14 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "play", "from" => from},
+        %{"name" => "play", "from" => video_time},
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
-      ) do
+      )
+      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) and
+             (is_integer(video_time) or is_float(video_time)) do
     Pipeline.add(%{
       type: :play,
-      video_time: from,
+      video_time: video_time,
       session_id: session_id,
       video_id: video_id
     })
@@ -98,12 +101,14 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "pause", "to" => to},
+        %{"name" => "pause", "to" => video_time},
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
-      ) do
+      )
+      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) and
+             (is_integer(video_time) or is_float(video_time)) do
     Pipeline.add(%{
       type: :pause,
-      video_time: to,
+      video_time: video_time,
       session_id: session_id,
       video_id: video_id
     })
@@ -131,11 +136,15 @@ defmodule MaveMetricsWeb.SessionChannel do
     socket
   end
 
-  defp on_disconnect(session_id, video_id) do
+  defp on_disconnect(session_id, video_id) when not is_nil(session_id) and not is_nil(video_id) do
     Pipeline.add(%{
       type: :disconnect,
       session_id: session_id,
       video_id: video_id
     })
+  end
+
+  defp on_disconnect(_, _) do
+    dbg("on_disconnect called with invalid session_id and video_id")
   end
 end
