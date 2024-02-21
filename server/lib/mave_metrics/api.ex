@@ -129,15 +129,15 @@ defmodule MaveMetrics.API do
   end
 
   defp apply_timeframe(query, %{"from" => from_timestamp, "to" => to_timestamp}) do
-    {:ok, from} = DateTime.from_unix(from_timestamp)
-    {:ok, to} = DateTime.from_unix(to_timestamp)
+    from = DateTime.from_unix!(from_timestamp) |> Timex.to_date()
+    to = DateTime.from_unix!(to_timestamp) |> Timex.to_date()
 
     query
     |> where([d], d.session_date >= ^from and d.session_date <= ^to)
   end
 
   defp apply_timeframe(query, timeframe) when is_number(timeframe) do
-    {:ok, from} = DateTime.from_unix(timeframe)
+    from = DateTime.from_unix!(timeframe) |> Timex.to_date()
 
     query
     |> where([d], d.session_date >= ^from)
