@@ -18,17 +18,17 @@ strategy = "rolling"
 [env]
 PHX_HOST = "mave-data.internal"
 DNS_CLUSTER_QUERY = "mave-data.internal"
-PORT = "3000"
+PORT = "3001"
 PRIMARY_REGION = "ams"
 ROOT_URL = "http://mave-data.internal"
 RELEASE_COOKIE = "3e0vnhSGgY-ZaVA4n3Djv5OCVpoiR4b2voHB2UvYrL4loe3av2XLQA=="
 
 [[services]]
 protocol = "tcp"
-internal_port = 3000
+internal_port = 3001
 processes = ["app"]
 [[services.ports]]
-port = 3000
+port = 3001
 [services.concurrency]
 type = "connections"
 hard_limit = 2048
