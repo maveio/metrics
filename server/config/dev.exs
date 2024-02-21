@@ -5,7 +5,7 @@ config :mave_metrics, MaveMetrics.Repo,
   username: "postgres",
   password: "postgres",
   hostname: "mave-db.internal",
-  database: "mave_metrics_dev",
+  database: "mave_data_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 20
@@ -19,7 +19,7 @@ config :mave_metrics, MaveMetrics.Repo,
 config :mave_metrics, MaveMetricsWeb.Endpoint,
   # Binding to loopback ipv4 address prevents access from other machines.
   # Change to `ip: {0, 0, 0, 0}` to allow access from other machines.
-  http: [ip: {0, 0, 0, 0}, port: 3000, protocol_options: [idle_timeout: :infinity]],
+  http: [ip: {0, 0, 0, 0}, port: 3001, protocol_options: [idle_timeout: :infinity]],
   check_origin: false,
   code_reloader: true,
   debug_errors: true,
