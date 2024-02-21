@@ -23,7 +23,11 @@ defmodule MaveMetrics.API do
       |> select([v], v.id)
       |> Repo.all()
 
-    query_aggregated_video_metrics(video_ids, timeframe, minimum_watch_seconds, interval)
+    if video_ids == [] do
+      []
+    else
+      query_aggregated_video_metrics(video_ids, timeframe, minimum_watch_seconds, interval)
+    end
   end
 
   def get_sources(%{"video" => query}, interval, timeframe, minimum_watch_seconds) do
@@ -37,7 +41,11 @@ defmodule MaveMetrics.API do
       |> select([v], v.id)
       |> Repo.one()
 
-    query_individual_video_by_url(video_id, timeframe, minimum_watch_seconds, interval)
+    if video_id == nil do
+      []
+    else
+      query_individual_video_by_url(video_id, timeframe, minimum_watch_seconds, interval)
+    end
   end
 
   def query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval) do
