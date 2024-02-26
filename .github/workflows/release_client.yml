@@ -1,10 +1,6 @@
 name: Release client package to NPM
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - "client/**"
   workflow_dispatch:
     inputs:
       release-type:
