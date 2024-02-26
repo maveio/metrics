@@ -37,18 +37,19 @@ jobs:
         run: git fetch --depth=1 origin +refs/tags/*:refs/tags/*
 
       - name: Determine new version tag
-        id: versioning
-        run: |
-          LATEST_TAG=$(git tag -l "server-v*" --sort=-v:refname | head -n 1)
-          echo "Latest server tag: $LATEST_TAG"
-          if [[ "$LATEST_TAG" == "" ]]; then LATEST_TAG="server-v0.0.0"; fi
-          PARTS=(${LATEST_TAG//./ })
-          VNUM=${PARTS[2]}
-          ((VNUM++))
-          NEW_TAG="server-v${PARTS[0]}.${PARTS[1]}.$VNUM"
-          echo "New tag: $NEW_TAG"
-          echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
-          echo "::set-output name=new_tag::$NEW_TAG"
+          id: versioning
+          run: |
+            LATEST_TAG="server-v0.1.8"
+            if [[ "$LATEST_TAG" == "" ]]; then
+              NEW_TAG="server-v0.1.0"
+            else
+              VERSION_NUM=$(echo "$LATEST_TAG" | sed 's/server-v//')
+              IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUM"
+              ((PATCH++))
+              NEW_TAG="server-v${MAJOR}.${MINOR}.${PATCH}"
+            fi
+            echo "New tag: $NEW_TAG"
+            echo "NEW_TAG=$NEW_TAG" >> $GITHUB_ENV
 
       - name: 🎙 Discord notification 2/3
         env:
