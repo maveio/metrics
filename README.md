@@ -93,7 +93,7 @@ An example response:
         "other": 0,
         "safari": 0
       },
-      "device_type": {
+      "device": {
         "desktop": 1,
         "mobile": 0,
         "other": 0,
