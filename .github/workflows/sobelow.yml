@@ -26,21 +26,19 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Install Elixir
-        run: |
+      - name: Install deps
+        run: run: |
           sudo apt-get update
           sudo apt-get install -y elixir
-
-      - name: Install Sobelow
-        run: |
           mix local.hex --force
           mix escript.install hex sobelow --force
 
       - name: Run Sobelow and Generate SARIF
         run: |
-          ~/.mix/escripts/sobelow --out --format sarif >> results.sarif
+          cd server
+          ~/.mix/escripts/sobelow --format sarif --out ../results.sarif
         env:
-          MIX_ENV: prod
+          MIX_HOME: ${{ runner.temp }}/mix
 
       - uses: github/codeql-action/upload-sarif@v3
         with:
