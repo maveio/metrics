@@ -9,24 +9,14 @@ defmodule MaveMetricsWeb.API.ViewsController do
     conn |> views(params)
   end
 
-  def views(conn, %{"identifier" => identifier, "query" => query} = params) do
-    result = API.get_plays({identifier, query}, params["interval"], params["timeframe"], params["minimum_watch_seconds"])
-
-    conn
-    |> json(%{views: result})
-    |> halt
-  end
-
-  def views(conn, %{"identifier" => identifier} = params) do
-    result = API.get_plays(identifier, params["interval"], params["timeframe"], params["minimum_watch_seconds"])
-
-    conn
-    |> json(%{views: result})
-    |> halt
-  end
-
   def views(conn, %{"query" => filters} = params) do
-    result = API.get_plays(filters, params["interval"], params["timeframe"], params["minimum_watch_seconds"])
+    result =
+      API.get_plays(
+        filters,
+        params["interval"],
+        params["timeframe"],
+        params["minimum_watch_seconds"]
+      )
 
     conn
     |> json(%{views: result})

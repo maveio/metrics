@@ -112,6 +112,7 @@ defmodule MaveMetrics.Stats do
 
   def refresh_daily_aggregation() do
     Repo.query!("REFRESH MATERIALIZED VIEW daily_session_aggregation;")
+    Repo.query!("REFRESH MATERIALIZED VIEW video_views_per_second_aggregate;")
   end
 
   defp float_video_time(attrs) do

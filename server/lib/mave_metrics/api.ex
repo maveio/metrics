@@ -48,6 +48,23 @@ defmodule MaveMetrics.API do
     end
   end
 
+  def get_engagement(%{"video" => query}, interval, timeframe) do
+    interval = interval || @default_interval
+    timeframe = timeframe || @default_timeframe
+
+    video_id =
+      Video
+      |> where([v], fragment("? @> ?", v.metadata, ^query))
+      |> select([v], v.id)
+      |> Repo.one()
+
+    if video_id == nil do
+      []
+    else
+      query_individual_video_engagement(video_id, timeframe, interval)
+    end
+  end
+
   def query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval) do
     "daily_session_aggregation"
     |> apply_timeframe(timeframe)
@@ -136,23 +153,69 @@ defmodule MaveMetrics.API do
     |> Repo.all()
   end
 
-  defp apply_timeframe(query, %{"from" => from_timestamp, "to" => to_timestamp}) do
+  def query_individual_video_engagement(video_id, timeframe, interval) do
+    result =
+      "video_views_per_second_per_day_aggregate"
+      |> where([d], d.video_id == ^video_id)
+      |> apply_timeframe(timeframe, :event_date)
+      |> group_by([d], [
+        fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
+        d.video_second
+      ])
+      |> select([d], %{
+        interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
+        second: d.video_second,
+        views: type(sum(d.views), :integer)
+      })
+      |> order_by([d],
+        asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
+        asc: d.video_second
+      )
+      |> Repo.all()
+
+    nest_engagement_data_by_interval(result)
+  end
+
+  defp nest_engagement_data_by_interval(results) do
+    results
+    |> Enum.group_by(& &1.interval)
+    |> Enum.map(fn {interval, engagements} ->
+      %{
+        interval: interval,
+        per_second:
+          Enum.map(engagements, fn %{second: second, views: views} ->
+            %{second: second, views: views}
+          end)
+      }
+    end)
+  end
+
+  defp apply_timeframe(query, timeframe, date_field \\ :session_date)
+
+  defp apply_timeframe(
+         query,
+         %{"from" => from_timestamp, "to" => to_timestamp},
+         date_field
+       ) do
     from = DateTime.from_unix!(from_timestamp) |> Timex.to_date()
     to = DateTime.from_unix!(to_timestamp) |> Timex.to_date()
 
     query
-    |> where([d], d.session_date >= ^from and d.session_date <= ^to)
+    |> where([d], field(d, ^date_field) >= ^from and field(d, ^date_field) <= ^to)
   end
 
-  defp apply_timeframe(query, timeframe) when is_number(timeframe) do
+  defp apply_timeframe(query, timeframe, date_field) when is_number(timeframe) do
     from = DateTime.from_unix!(timeframe) |> Timex.to_date()
 
     query
-    |> where([d], d.session_date >= ^from)
+    |> where([d], field(d, ^date_field) >= ^from)
   end
 
-  defp apply_timeframe(query, timeframe) when is_binary(timeframe) do
+  defp apply_timeframe(query, timeframe, date_field) when is_binary(timeframe) do
     query
-    |> where([d], d.session_date >= fragment(~s|now() - interval '?'|, literal(^timeframe)))
+    |> where(
+      [d],
+      field(d, ^date_field) >= fragment(~s|now() - interval '?'|, literal(^timeframe))
+    )
   end
 end

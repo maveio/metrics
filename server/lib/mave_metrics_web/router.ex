@@ -24,6 +24,8 @@ defmodule MaveMetricsWeb.Router do
     get("/views", API.ViewsController, :get_views)
     post("/sources", API.SourcesController, :sources)
     get("/sources", API.SourcesController, :get_sources)
+    post("/engagement", API.EngagementController, :engagement)
+    get("/engagement", API.EngagementController, :get_engagement)
 
     post("/keys", API.KeysController, :create_key)
     get("/keys", API.KeysController, :get_keys)
