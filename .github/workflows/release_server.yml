@@ -40,12 +40,15 @@ jobs:
         id: versioning
         run: |
           LATEST_TAG=$(git tag -l "server-v*" --sort=-v:refname | head -n 1)
+          echo "LATEST_TAG: $LATEST_TAG"
           if [[ "$LATEST_TAG" == "" ]]; then
             NEW_TAG="server-v0.1.0"
           else
             VERSION_NUM=$(echo "$LATEST_TAG" | sed 's/server-v//')
+            echo "VERSION_NUM: $VERSION_NUM"
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUM"
             ((PATCH++))
+            echo "MAJOR: $MAJOR - MINOR: $MINOR - PATCH: $PATCH"
             NEW_TAG="server-v${MAJOR}.${MINOR}.${PATCH}"
           fi
           echo "New tag: $NEW_TAG"
