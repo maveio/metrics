@@ -2,7 +2,7 @@ import Hls from 'hls.js';
 
 import { Metrics } from '@maveio/metrics';
 Metrics.config = {
-  socketPath: 'ws://localhost:3000/socket',
+  socketPath: 'ws://localhost:3001/socket',
   apiKey: 'HDsj3NfKQTNwn5Ix9g+cfQ=='
 }
 
