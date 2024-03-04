@@ -47,7 +47,8 @@ jobs:
             VERSION_NUM=$(echo "$LATEST_TAG" | sed 's/server-v//')
             echo "VERSION_NUM: $VERSION_NUM"
             IFS='.' read -r MAJOR MINOR PATCH <<< "$VERSION_NUM"
-            ((PATCH++))
+            echo "Before increment PATCH value is: $PATCH"
+            PATCH=$((PATCH + 1))
             echo "MAJOR: $MAJOR - MINOR: $MINOR - PATCH: $PATCH"
             NEW_TAG="server-v${MAJOR}.${MINOR}.${PATCH}"
           fi

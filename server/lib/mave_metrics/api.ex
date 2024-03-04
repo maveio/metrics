@@ -5,8 +5,7 @@ defmodule MaveMetrics.API do
 
   import Ecto.Query, warn: false
   import EctoCase
-  alias MaveMetrics.Repo
-  alias MaveMetrics.Video
+  alias MaveMetrics.{Repo, Video, Event}
 
   @default_timeframe "7 days"
   @default_interval "12 months"
@@ -154,26 +153,42 @@ defmodule MaveMetrics.API do
   end
 
   def query_individual_video_engagement(video_id, timeframe, interval) do
-    result =
-      "video_views_per_second_per_day_aggregate"
-      |> where([d], d.video_id == ^video_id)
-      |> apply_timeframe(timeframe, :event_date)
-      |> group_by([d], [
-        fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
-        d.video_second
-      ])
-      |> select([d], %{
-        interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
-        second: d.video_second,
-        views: type(sum(d.views), :integer)
-      })
-      |> order_by([d],
-        asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.event_date),
-        asc: d.video_second
-      )
-      |> Repo.all()
-
-    nest_engagement_data_by_interval(result)
+    Event
+    |> where([e], e.type == ^:play and e.video_id == ^video_id)
+    |> apply_timeframe(timeframe, :timestamp)
+    |> join(:inner, [e], e_next in Event,
+      on:
+        e_next.session_id == e.session_id and e_next.type == ^:pause and
+          e_next.timestamp > e.timestamp
+    )
+    |> join(
+      :inner_lateral,
+      [e, e_next],
+      gs in fragment(
+        "SELECT generate_series(
+          floor(?)::int,
+          ceil(?)::int - 1
+        ) AS second",
+        e.video_time,
+        e_next.video_time
+      ),
+      on: true
+    )
+    |> group_by([e, e_next, s], [
+      fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
+      s.second
+    ])
+    |> order_by([e, e_next, s],
+      asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
+      asc: s.second
+    )
+    |> select([e, e_next, s], %{
+      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
+      second: s.second,
+      views: count()
+    })
+    |> Repo.all()
+    |> nest_engagement_data_by_interval()
   end
 
   defp nest_engagement_data_by_interval(results) do
