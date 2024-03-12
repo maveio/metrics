@@ -5,7 +5,7 @@ defmodule MaveMetrics.API do
 
   import Ecto.Query, warn: false
   import EctoCase
-  alias MaveMetrics.{Repo, Video, Event}
+  alias MaveMetrics.{Repo, Video, Event, Duration}
 
   @default_timeframe "7 days"
   @default_interval "12 months"
@@ -65,12 +65,13 @@ defmodule MaveMetrics.API do
   end
 
   def query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval) do
-    "daily_session_aggregation"
+    Duration
     |> apply_timeframe(timeframe)
     |> where([d], d.video_id in ^video_ids)
-    |> where([d], d.session_watched_seconds >= ^min_watched_seconds)
+    |> where([d], d.duration >= ^min_watched_seconds)
     |> group_by([d], [
-      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
+      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+      d.timestamp,
       d.session_id,
       d.platform,
       d.device,
@@ -78,26 +79,27 @@ defmodule MaveMetrics.API do
     ])
     |> select([d], %{
       session_id: d.session_id,
-      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
-      total_view_time: sum(d.session_watched_seconds),
-      platform_mac: case_when(d.platform == "mac", 1, 0),
-      platform_ios: case_when(d.platform == "ios", 1, 0),
-      platform_android: case_when(d.platform == "android", 1, 0),
-      platform_windows: case_when(d.platform == "windows", 1, 0),
-      platform_linux: case_when(d.platform == "linux", 1, 0),
-      platform_other: case_when(d.platform == "other", 1, 0),
-      device_mobile: case_when(d.device == "mobile", 1, 0),
-      device_desktop: case_when(d.device == "desktop", 1, 0),
-      device_tablet: case_when(d.device == "tablet", 1, 0),
-      device_other: case_when(d.device == "other", 1, 0),
-      browser_edge: case_when(d.browser == "edge", 1, 0),
-      browser_ie: case_when(d.browser == "ie", 1, 0),
-      browser_chrome: case_when(d.browser == "chrome", 1, 0),
-      browser_firefox: case_when(d.browser == "firefox", 1, 0),
-      browser_opera: case_when(d.browser == "opera", 1, 0),
-      browser_safari: case_when(d.browser == "safari", 1, 0),
-      browser_brave: case_when(d.browser == "brave", 1, 0),
-      browser_other: case_when(d.browser == "other", 1, 0)
+      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+      total_view_time: sum(d.duration),
+      unique_total_view_time: sum(fragment("? * ?", d.duration, d.uniqueness)),
+      platform_mac: case_when(d.platform == :mac, 1, 0),
+      platform_ios: case_when(d.platform == :ios, 1, 0),
+      platform_android: case_when(d.platform == :android, 1, 0),
+      platform_windows: case_when(d.platform == :windows, 1, 0),
+      platform_linux: case_when(d.platform == :linux, 1, 0),
+      platform_other: case_when(d.platform == :other, 1, 0),
+      device_mobile: case_when(d.device == :mobile, 1, 0),
+      device_desktop: case_when(d.device == :desktop, 1, 0),
+      device_tablet: case_when(d.device == :tablet, 1, 0),
+      device_other: case_when(d.device == :other, 1, 0),
+      browser_edge: case_when(d.browser == :edge, 1, 0),
+      browser_ie: case_when(d.browser == :ie, 1, 0),
+      browser_chrome: case_when(d.browser == :chrome, 1, 0),
+      browser_firefox: case_when(d.browser == :firefox, 1, 0),
+      browser_opera: case_when(d.browser == :opera, 1, 0),
+      browser_safari: case_when(d.browser == :safari, 1, 0),
+      browser_brave: case_when(d.browser == :brave, 1, 0),
+      browser_other: case_when(d.browser == :other, 1, 0)
     })
     |> subquery()
     |> group_by([d], [d.interval])
@@ -105,6 +107,7 @@ defmodule MaveMetrics.API do
       interval: e.interval,
       views: count(e.session_id),
       total_view_time: sum(e.total_view_time),
+      unique_total_view_time: sum(e.unique_total_view_time),
       platform: %{
         mac: sum(e.platform_mac),
         ios: sum(e.platform_ios),
@@ -134,17 +137,17 @@ defmodule MaveMetrics.API do
   end
 
   def query_individual_video_by_url(video_id, timeframe, min_watched_seconds, interval) do
-    "daily_session_aggregation"
+    Duration
     |> apply_timeframe(timeframe)
     |> where([d], d.video_id == ^video_id)
-    |> where([d], d.session_watched_seconds >= ^min_watched_seconds)
+    |> where([d], d.duration >= ^min_watched_seconds)
     |> group_by([d], [
-      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
+      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
       d.uri_host,
       d.uri_path
     ])
     |> select([d], %{
-      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.session_date),
+      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
       host: d.uri_host,
       path: d.uri_path,
       views: count(d.session_id)
@@ -153,38 +156,30 @@ defmodule MaveMetrics.API do
   end
 
   def query_individual_video_engagement(video_id, timeframe, interval) do
-    Event
-    |> where([e], e.type == ^:play and e.video_id == ^video_id)
-    |> apply_timeframe(timeframe, :timestamp)
-    |> join(:inner, [e], e_next in Event,
-      on:
-        e_next.session_id == e.session_id and e_next.type == ^:pause and
-          e_next.timestamp > e.timestamp
-    )
+    Duration
+    |> where([d], d.video_id == ^video_id)
+    |> apply_timeframe(timeframe)
     |> join(
       :inner_lateral,
-      [e, e_next],
+      [d],
       gs in fragment(
-        "SELECT generate_series(
-          floor(?)::int,
-          ceil(?)::int - 1
-        ) AS second",
-        e.video_time,
-        e_next.video_time
+        "SELECT generate_series(lower(?), upper(?) - 1) AS second",
+        d.watched_seconds,
+        d.watched_seconds
       ),
       on: true
     )
-    |> group_by([e, e_next, s], [
-      fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
-      s.second
+    |> group_by([d, gs], [
+      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+      gs.second
     ])
-    |> order_by([e, e_next, s],
-      asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
-      asc: s.second
+    |> order_by([d, gs],
+      asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+      asc: gs.second
     )
-    |> select([e, e_next, s], %{
-      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), e.timestamp),
-      second: s.second,
+    |> select([d, gs], %{
+      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+      second: gs.second,
       views: count()
     })
     |> Repo.all()
@@ -205,7 +200,7 @@ defmodule MaveMetrics.API do
     end)
   end
 
-  defp apply_timeframe(query, timeframe, date_field \\ :session_date)
+  defp apply_timeframe(query, timeframe, date_field \\ :timestamp)
 
   defp apply_timeframe(
          query,
