@@ -34,9 +34,9 @@ defmodule MaveMetrics.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.7"},
-      {:phoenix_ecto, "~> 4.4"},
-      {:ecto_sql, "~> 3.10"},
-      {:postgrex, "~> 0.17.3"},
+      {:phoenix_ecto, "~> 4.5"},
+      {:ecto_sql, "~> 3.11"},
+      {:postgrex, "~> 0.17.5"},
       {:phoenix_html, "~> 3.0"},
       {:phoenix_live_reload, "~> 1.4", only: :dev},
       {:phoenix_live_view, "~> 0.20.4"},
@@ -55,13 +55,14 @@ defmodule MaveMetrics.MixProject do
       {:timescale, "~> 0.1.1"},
       {:cors_plug, "~> 3.0"},
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
-      {:ua_inspector, "~> 3.8"},
+      {:ua_inspector, "~> 3.9"},
       {:redirect, "~> 0.4.0"},
       {:nebulex, "~> 2.6"},
       {:shards, "~> 1.1"},
       {:decorator, "~> 1.4"},
       {:dns_cluster, "~> 0.1.1"},
-      {:timex, "~> 3.7"}
+      {:timex, "~> 3.7"},
+      {:pg_ranges, "~> 1.1"}
     ]
   end
 

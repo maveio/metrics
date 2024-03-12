@@ -46,8 +46,6 @@ export class Metrics {
   bufferTimeInterval = 50;
   bufferOffset = (this.bufferTimeInterval - 40) / 1000;
 
-  #playing = false;
-
   selectedLanguageVTT?: string;
   fullscreen = false;
 
@@ -150,7 +148,7 @@ export class Metrics {
       } else {
         this.identifier = args[1] as string;
       }
-      
+
       if (args[2]) {
         this.metadata = args[2] as object;
       }
@@ -196,10 +194,10 @@ export class Metrics {
 
   demonitor(): void {
     if(!this.#monitoring) return;
-    
+
     this.#resizeObserver?.unobserve(this.#video);
     this.#unrecordSession();
-    
+
     if (this.#session && this.#video) {
       Data.stopSession(this.#video);
     }
@@ -234,7 +232,6 @@ export class Metrics {
 
     switch (event.type) {
       case NativeEvents.PLAYING:
-        this.#playing = true;
         this.#session?.push(
           'event',
           {
@@ -247,36 +244,27 @@ export class Metrics {
 
         break;
       case NativeEvents.PAUSE:
-        this.#playing = false;
-        
-        this.#session?.push(
-          'event',
-          {
-            ...params,
-            to: this.#video?.currentTime,
-          },
-          this.timeout
-        );
+        if (this.#video?.readyState === 4) {
+          this.#session?.push(
+            'event',
+            {
+              ...params,
+              to: this.#video?.currentTime,
+            },
+            this.timeout
+          );
+        }
 
         break;
       case NativeEvents.SEEKED:
         // ignore time shift
-        if(this.#playing && Math.abs(this.#lastLastLastCurrentTime - this.#lastLastCurrentTime) > 0.5) {
+        if (Math.abs(this.#lastLastLastCurrentTime - this.#lastLastCurrentTime) > 0.5) {
           this.#session?.push(
             'event',
             {
               ...params,
               name: 'pause',
               to: this.#lastLastLastCurrentTime,
-            },
-            this.timeout
-          );
-          this.#session?.push(
-            'event',
-            {
-              ...params,
-              name: 'play',
-              to: this.#video?.currentTime,
             },
             this.timeout
           );
@@ -287,7 +275,7 @@ export class Metrics {
         this.#lastLastCurrentTime = this.#lastCurrentTime;
         this.#lastCurrentTime = this.#video?.currentTime;
         break;
-      
+
     }
   }
 }

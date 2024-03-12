@@ -10,5 +10,8 @@
 # We recommend using the bang functions (`insert!`, `update!`
 # and so on) as they will fail if something goes wrong.
 
+key = MaveMetrics.Keys.get_key("HDsj3NfKQTNwn5Ix9g+cfQ==")
 
-MaveMetrics.Keys.create_key(%{"key" => "HDsj3NfKQTNwn5Ix9g+cfQ=="})
+if is_nil(key) do
+  MaveMetrics.Keys.create_key(%{"key" => "HDsj3NfKQTNwn5Ix9g+cfQ=="})
+end
