@@ -145,6 +145,44 @@ An example response:
 }
 ```
 
+### `/api/v1/engagement` (POST or GET)
+
+Engagement is used to determine which portion of a video have been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) using the identifier or query for metadata, set a timeframe to define the desired period, and indicate the number of ranges as an integer to segment the play duration of sessions.
+
+The response will show you which seconds of the video contains a view, here's an example response:
+
+```json
+{
+  "engagement": [
+    {
+      "interval": "2024-03-01T00:00:00.000000Z",
+      "per_second": [
+        {
+          "second": 0,
+          "views": 5
+        },
+        {
+          "second": 1,
+          "views": 5
+        },
+        {
+          "second": 2,
+          "views": 3
+        },
+        {
+          "second": 3,
+          "views": 1
+        },
+        {
+          "second": 4,
+          "views": 1
+        }
+      ]
+    }
+  ]
+}
+```
+
 ### `/api/v1/keys` (POST)
 
 Create a new API key to use with the client-side library.
