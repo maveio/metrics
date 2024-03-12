@@ -147,7 +147,7 @@ An example response:
 
 ### `/api/v1/engagement` (POST or GET)
 
-Engagement is used to determine which portion of a video have been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) using the identifier or query for metadata, set a timeframe to define the desired period, and indicate the number of ranges as an integer to segment the play duration of sessions.
+Engagement is used to determine which portion of a video has been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) by using the identifier or by querying for metadata. Set a timeframe to define the desired period, and indicate the number of ranges as an integer to segment the play duration of the sessions.
 
 The response will show you which seconds of the video contains a view, here's an example response:
 
