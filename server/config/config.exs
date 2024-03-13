@@ -11,7 +11,8 @@ config :mave_metrics,
   ecto_repos: [MaveMetrics.Repo],
   api_auth: System.get_env("METRICS_AUTH_ENABLED") == "true" || false,
   api_user: System.get_env("METRICS_USER"),
-  api_password: System.get_env("METRICS_PASSWORD")
+  api_password: System.get_env("METRICS_PASSWORD"),
+  batch_size: 2
 
 config :mave_metrics, MaveMetrics.Repo, migration_timestamps: [type: :utc_datetime_usec]
 

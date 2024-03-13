@@ -3,7 +3,7 @@ defmodule MaveMetrics.Pipeline do
 
   alias MaveMetrics.Stats
 
-  @max_batch_size 50
+  @max_batch_size Application.compile_env(:mave_metrics, :batch_size)
 
   # 5 minutes
   @max_interval_ms 60_000 * 5
