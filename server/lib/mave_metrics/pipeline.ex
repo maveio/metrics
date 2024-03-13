@@ -3,7 +3,7 @@ defmodule MaveMetrics.Pipeline do
 
   alias MaveMetrics.Stats
 
-  @max_batch_size 2
+  @max_batch_size 50
 
   # 5 minutes
   @max_interval_ms 60_000 * 5
