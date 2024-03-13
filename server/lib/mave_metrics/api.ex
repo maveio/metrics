@@ -221,7 +221,7 @@ defmodule MaveMetrics.API do
 
   defp apply_timeframe(query, timeframe, date_field) when is_number(timeframe) do
     from =
-      DateTime.from_unix!(from_timestamp, :second)
+      DateTime.from_unix!(timeframe, :second)
       |> DateTime.truncate(:microsecond)
 
     query
