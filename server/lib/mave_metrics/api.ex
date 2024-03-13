@@ -220,7 +220,9 @@ defmodule MaveMetrics.API do
   end
 
   defp apply_timeframe(query, timeframe, date_field) when is_number(timeframe) do
-    from = DateTime.from_unix!(timeframe) |> Timex.to_date()
+    from =
+      DateTime.from_unix!(from_timestamp, :second)
+      |> DateTime.truncate(:microsecond)
 
     query
     |> where([d], field(d, ^date_field) >= ^from)
