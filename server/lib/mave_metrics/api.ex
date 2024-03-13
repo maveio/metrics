@@ -207,8 +207,13 @@ defmodule MaveMetrics.API do
          %{"from" => from_timestamp, "to" => to_timestamp},
          date_field
        ) do
-    from = DateTime.from_unix!(from_timestamp) |> Timex.to_date()
-    to = DateTime.from_unix!(to_timestamp) |> Timex.to_date()
+    from =
+      DateTime.from_unix!(from_timestamp, :second)
+      |> DateTime.truncate(:microsecond)
+
+    to =
+      DateTime.from_unix!(to_timestamp, :second)
+      |> DateTime.truncate(:microsecond)
 
     query
     |> where([d], field(d, ^date_field) >= ^from and field(d, ^date_field) <= ^to)
