@@ -1,6 +1,6 @@
 {
   "name": "@maveio/metrics",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "privacy friendly (🇪🇺) video metrics hosted on mave.io",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
