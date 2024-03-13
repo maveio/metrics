@@ -156,6 +156,7 @@ defmodule MaveMetrics.Stats do
       total_duration = round(pause_event.video_time) - round(play_event.video_time) + 1
       total_overlap = Enum.sum(for %{overlap: o} <- overlapping_durations, do: o)
       uniqueness = (total_duration - total_overlap) / total_duration
+      uniqueness = if uniqueness < 0, do: 0, else: uniqueness
 
       session = Session |> Repo.get!(pause_event.session_id)
 
