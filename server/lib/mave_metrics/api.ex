@@ -5,7 +5,7 @@ defmodule MaveMetrics.API do
 
   import Ecto.Query, warn: false
   import EctoCase
-  alias MaveMetrics.{Repo, Video, Event, Duration}
+  alias MaveMetrics.{Repo, Video, Duration}
 
   @default_timeframe "7 days"
   @default_interval "12 months"
@@ -34,16 +34,16 @@ defmodule MaveMetrics.API do
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    video_id =
+    video_ids =
       Video
       |> where([v], fragment("? @> ?", v.metadata, ^query))
       |> select([v], v.id)
-      |> Repo.one()
+      |> Repo.all()
 
-    if video_id == nil do
+    if video_ids == nil or video_ids == [] do
       []
     else
-      query_individual_video_by_url(video_id, timeframe, minimum_watch_seconds, interval)
+      query_individual_video_by_url(video_ids, timeframe, minimum_watch_seconds, interval)
     end
   end
 
@@ -51,16 +51,16 @@ defmodule MaveMetrics.API do
     interval = interval || @default_interval
     timeframe = timeframe || @default_timeframe
 
-    video_id =
+    video_ids =
       Video
       |> where([v], fragment("? @> ?", v.metadata, ^query))
       |> select([v], v.id)
-      |> Repo.one()
+      |> Repo.all()
 
-    if video_id == nil do
+    if video_ids == nil or video_ids == [] do
       []
     else
-      query_individual_video_engagement(video_id, timeframe, interval)
+      query_individual_video_engagement(video_ids, timeframe, interval)
     end
   end
 
@@ -136,10 +136,10 @@ defmodule MaveMetrics.API do
     |> Repo.all()
   end
 
-  def query_individual_video_by_url(video_id, timeframe, min_watched_seconds, interval) do
+  def query_individual_video_by_url(video_ids, timeframe, min_watched_seconds, interval) do
     Duration
     |> apply_timeframe(timeframe)
-    |> where([d], d.video_id == ^video_id)
+    |> where([d], d.video_id in ^video_ids)
     |> where([d], d.duration >= ^min_watched_seconds)
     |> group_by([d], [
       fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
@@ -155,9 +155,9 @@ defmodule MaveMetrics.API do
     |> Repo.all()
   end
 
-  def query_individual_video_engagement(video_id, timeframe, interval) do
+  def query_individual_video_engagement(video_ids, timeframe, interval) do
     Duration
-    |> where([d], d.video_id == ^video_id)
+    |> where([d], d.video_id in ^video_ids)
     |> apply_timeframe(timeframe)
     |> join(
       :inner_lateral,
