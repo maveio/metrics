@@ -56,7 +56,7 @@ export default class Data {
           Data.instance.#path || 'ws://localhost:3000/socket',
           {
             params: {
-              source_url: window.location.href,
+              source_url: `${window.location.protocol}//${window.location.host}${window.location.pathname}`,
               key: Data.instance.#key,
             },
             reconnectAfterMs: retryWindow,
