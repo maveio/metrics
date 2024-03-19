@@ -237,7 +237,7 @@ export class Metrics {
           {
             ...params,
             name: 'play',
-            from: this.#video?.currentTime,
+            from: this.#currentTime(),
           },
           this.timeout
         );
@@ -249,7 +249,7 @@ export class Metrics {
             'event',
             {
               ...params,
-              to: this.#video?.currentTime,
+              to: this.#currentTime(),
             },
             this.timeout
           );
@@ -277,5 +277,9 @@ export class Metrics {
         break;
 
     }
+  }
+
+  #currentTime() {
+    return this.#video?.currentTime.toFixed(2);
   }
 }
