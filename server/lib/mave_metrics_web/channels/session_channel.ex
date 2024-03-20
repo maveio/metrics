@@ -55,8 +55,9 @@ defmodule MaveMetricsWeb.SessionChannel do
           }
         } = socket
       )
-      when is_nil(session_id) and is_nil(video_id) and not is_nil(video_time) and
-             (is_integer(video_time) or is_float(video_time)) do
+      when is_nil(session_id) and is_nil(video_id) and not is_nil(video_time) do
+    video_time = if is_binary(video_time), do: String.to_float(video_time), else: video_time
+
     # only create video and session once play starts
     {:ok, video} = Stats.find_or_create_video(key, metadata)
     {:ok, session} = Stats.create_session(video, session_attrs)
@@ -86,8 +87,9 @@ defmodule MaveMetricsWeb.SessionChannel do
         %{"name" => "play", "from" => video_time},
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       )
-      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) and
-             (is_integer(video_time) or is_float(video_time)) do
+      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) do
+    video_time = if is_binary(video_time), do: String.to_float(video_time), else: video_time
+
     Pipeline.add(%{
       type: :play,
       video_time: video_time,
@@ -104,8 +106,9 @@ defmodule MaveMetricsWeb.SessionChannel do
         %{"name" => "pause", "to" => video_time},
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       )
-      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) and
-             (is_integer(video_time) or is_float(video_time)) do
+      when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) do
+    video_time = if is_binary(video_time), do: String.to_float(video_time), else: video_time
+
     Pipeline.add(%{
       type: :pause,
       video_time: video_time,
