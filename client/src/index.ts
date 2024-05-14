@@ -3,15 +3,16 @@ import Data from './data';
 import Logger from './logger';
 
 enum NativeEvents {
-  DURATIONCHANGE = "durationchange",
-  LOADEDMETADATA = "loadedmetadata",
-  TIMEUPDATE = "timeupdate",
-  LOADEDDATA = "loadeddata",
-  CANPLAY = "canplay",
-  CANPLAYTHROUGH = "canplaythrough",
-  SEEKED = "seeked",
-  RATECHANGE = "ratechange",
-  VOLUMECHANGE = "volumechange",
+  DURATIONCHANGE = 'durationchange',
+  LOADEDMETADATA = 'loadedmetadata',
+  TIMEUPDATE = 'timeupdate',
+  LOADEDDATA = 'loadeddata',
+  CANPLAY = 'canplay',
+  CANPLAYTHROUGH = 'canplaythrough',
+  SEEKING = 'seeking',
+  SEEKED = 'seeked',
+  RATECHANGE = 'ratechange',
+  VOLUMECHANGE = 'volumechange',
   PLAYING = 'playing',
   ENDED = 'ended',
   PLAY = 'play',
@@ -39,9 +40,8 @@ export class Metrics {
   #video!: HTMLVideoElement;
   #session!: Channel;
 
-  #lastLastLastCurrentTime = 0;
-  #lastLastCurrentTime = 0;
-  #lastCurrentTime = 0;
+  #lastTime?: number;
+  #lastEventType?: null | 'play' | 'pause' = null;
   bufferInterval?: ReturnType<typeof setInterval>;
   bufferTimeInterval = 50;
   bufferOffset = (this.bufferTimeInterval - 40) / 1000;
@@ -232,19 +232,27 @@ export class Metrics {
 
     switch (event.type) {
       case NativeEvents.PLAYING:
+        if (this.#lastEventType === 'play') {
+          break;
+        }
+
         this.#session?.push(
           'event',
           {
             ...params,
             name: 'play',
-            from: this.#currentTime(),
+            // remove time shifting (play > playing)
+            from: this.#video?.currentTime < 1 ? 0 : this.#currentTime()
           },
           this.timeout
         );
 
+        this.#lastEventType = 'play';
+
         break;
       case NativeEvents.PAUSE:
         if (this.#video?.readyState === 4) {
+          if(this.#lastEventType === 'pause') break;
           this.#session?.push(
             'event',
             {
@@ -255,28 +263,35 @@ export class Metrics {
           );
         }
 
+        this.#lastEventType = 'pause';
+
         break;
-      case NativeEvents.SEEKED:
-        // ignore time shift
-        if (Math.abs(this.#lastLastLastCurrentTime - this.#lastLastCurrentTime) > 0.5) {
+
+      case NativeEvents.TIMEUPDATE:
+        if (this.#video?.ended) {
+          this.#lastTime = undefined;
+          break;
+        }
+
+        if (this.#lastTime && !this.#video.paused && Math.abs(this.#video?.currentTime - this.#lastTime) > 0.5) {
+          if (this.#lastEventType === 'pause') break;
           this.#session?.push(
             'event',
             {
               ...params,
               name: 'pause',
-              to: this.#lastLastLastCurrentTime,
+              to: this.#lastTime,
             },
             this.timeout
           );
-        }
-        break;
-      case NativeEvents.TIMEUPDATE:
-        this.#lastLastLastCurrentTime = this.#lastLastCurrentTime;
-        this.#lastLastCurrentTime = this.#lastCurrentTime;
-        this.#lastCurrentTime = this.#video?.currentTime;
-        break;
 
+          this.#lastEventType = 'pause';
+        }
+
+        this.#lastTime = this.#video?.currentTime;
+        break;
     }
+
   }
 
   #currentTime() {

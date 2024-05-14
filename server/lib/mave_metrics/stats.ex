@@ -125,55 +125,61 @@ defmodule MaveMetrics.Stats do
   def create_durations(events) do
     events
     |> Enum.filter(&(&1.type == :pause))
-    |> Enum.map(fn pause_event ->
+    |> Enum.reduce([], fn pause_event, acc ->
       play_event = find_play_event_for(pause_event, events)
 
-      watched_seconds =
-        Int4Range.new(
-          round(play_event.video_time),
-          (Float.floor(pause_event.video_time) |> trunc()) + 1
-        )
+      if play_event && pause_event.video_time >= play_event.video_time do
+        lower_bound = round(play_event.video_time)
+        upper_bound = (Float.floor(pause_event.video_time) |> trunc()) + 1
 
-      overlapping_durations =
-        Duration
-        |> where(
-          [d],
-          d.session_id == ^pause_event.session_id and d.video_id == ^pause_event.video_id
-        )
-        |> where([d], fragment("? && ?", d.watched_seconds, type(^watched_seconds, Int4Range)))
-        |> select([d], %{
-          overlap:
-            fragment(
-              "upper(? * ?) - lower(? * ?)",
-              d.watched_seconds,
-              type(^watched_seconds, Int4Range),
-              d.watched_seconds,
-              type(^watched_seconds, Int4Range)
-            )
-        })
-        |> Repo.all()
+        watched_seconds = Int4Range.new(lower_bound, upper_bound)
 
-      total_duration = round(pause_event.video_time) - round(play_event.video_time) + 1
-      total_overlap = Enum.sum(for %{overlap: o} <- overlapping_durations, do: o)
-      uniqueness = (total_duration - total_overlap) / total_duration
-      uniqueness = if uniqueness < 0, do: 0.0, else: uniqueness
+        overlapping_durations =
+          Duration
+          |> where(
+            [d],
+            d.session_id == ^pause_event.session_id and d.video_id == ^pause_event.video_id
+          )
+          |> where([d], fragment("? && ?", d.watched_seconds, type(^watched_seconds, Int4Range)))
+          |> select([d], %{
+            overlap:
+              fragment(
+                "upper(? * ?) - lower(? * ?)",
+                d.watched_seconds,
+                type(^watched_seconds, Int4Range),
+                d.watched_seconds,
+                type(^watched_seconds, Int4Range)
+              )
+          })
+          |> Repo.all()
 
-      session = Session |> Repo.get!(pause_event.session_id)
+        total_duration = round(pause_event.video_time) - round(play_event.video_time) + 1
+        total_overlap = Enum.sum(for %{overlap: o} <- overlapping_durations, do: o)
+        uniqueness = (total_duration - total_overlap) / total_duration
+        uniqueness = if uniqueness < 0, do: 0.0, else: uniqueness
 
-      %{
-        timestamp: pause_event.timestamp,
-        duration: Float.round(pause_event.video_time - play_event.video_time, 2),
-        session_id: pause_event.session_id,
-        video_id: pause_event.video_id,
-        uniqueness: uniqueness,
-        watched_seconds: watched_seconds,
-        browser: session.browser,
-        platform: session.platform,
-        device: session.device,
-        uri_host: session.uri_host,
-        uri_path: session.uri_path
-      }
+        session = Session |> Repo.get!(pause_event.session_id)
+
+        duration_map = %{
+          timestamp: pause_event.timestamp,
+          duration: Float.round(pause_event.video_time - play_event.video_time, 2),
+          session_id: pause_event.session_id,
+          video_id: pause_event.video_id,
+          uniqueness: uniqueness,
+          watched_seconds: watched_seconds,
+          browser: session.browser,
+          platform: session.platform,
+          device: session.device,
+          uri_host: session.uri_host,
+          uri_path: session.uri_path
+        }
+
+        [duration_map | acc]
+      else
+        acc
+      end
     end)
+    |> Enum.reverse()
   end
 
   defp find_play_event_for(pause_event, events) do
