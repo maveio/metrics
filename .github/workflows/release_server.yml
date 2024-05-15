@@ -81,4 +81,4 @@ jobs:
       - name: Create and push new tag
         run: |
           git tag ${{ env.NEW_TAG }}
-          git push origin ${{ env.NEW_TAG }}
+          git push origin ${{ env.NEW_TAG }} -u mave-bot:${{ secrets.PUSH_TO_PROTECTED_BRANCH }}
