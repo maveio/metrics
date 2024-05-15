@@ -18,11 +18,22 @@ jobs:
         with:
           args: "Mave-metrics release started ⏳"
 
-      - name: 🛑 Cancel previous runs
-        uses: styfle/cancel-workflow-action@0.9.1
-
       - name: ⬇️ Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+
+      - name: Import GPG key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v4
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+
+      - name: Git configuration
+        run: |
+          git config --global user.email "${{ steps.import-gpg.outputs.email }}"
+          git config --global user.name "${{ steps.import-gpg.outputs.name }}"
 
       - name: 🔑 Install Fly cli
         uses: superfly/flyctl-actions/setup-flyctl@master
