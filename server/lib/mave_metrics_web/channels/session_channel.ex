@@ -70,11 +70,6 @@ defmodule MaveMetricsWeb.SessionChannel do
       video_id: video.id
     })
 
-    # MaveWeb.Presence.track(self(), embed_channel, socket.id, %{
-    #   socket_id: socket.id,
-    #   online_at: System.system_time(:microsecond)
-    # })
-
     Presence.track(self(), "video:#{video.id}", "#{session.id}", %{})
 
     {
