@@ -20,6 +20,8 @@ defmodule MaveMetricsWeb.Router do
   scope "/api/v1", MaveMetricsWeb do
     pipe_through([:api, :require_api_authentication?])
 
+    post("/watching", API.WatchingController, :watching)
+    get("/watching", API.WatchingController, :get_watching)
     post("/views", API.ViewsController, :views)
     get("/views", API.ViewsController, :get_views)
     post("/sources", API.SourcesController, :sources)

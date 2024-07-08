@@ -1,5 +1,6 @@
 defmodule MaveMetricsWeb.SessionChannel do
   use MaveMetricsWeb, :channel
+  alias MaveMetricsWeb.Presence
 
   alias MaveMetrics.{Stats, Keys, Pipeline}
 
@@ -69,6 +70,13 @@ defmodule MaveMetricsWeb.SessionChannel do
       video_id: video.id
     })
 
+    # MaveWeb.Presence.track(self(), embed_channel, socket.id, %{
+    #   socket_id: socket.id,
+    #   online_at: System.system_time(:microsecond)
+    # })
+
+    Presence.track(self(), "video:#{video.id}", "#{session.id}", %{})
+
     {
       :noreply,
       socket
@@ -97,6 +105,8 @@ defmodule MaveMetricsWeb.SessionChannel do
       video_id: video_id
     })
 
+    Presence.track(self(), "video:#{video_id}", "#{session_id}", %{})
+
     {:noreply, socket}
   end
 
@@ -115,6 +125,8 @@ defmodule MaveMetricsWeb.SessionChannel do
       session_id: session_id,
       video_id: video_id
     })
+
+    Presence.untrack(self(), "video:#{video_id}", "#{session_id}")
 
     {:noreply, socket}
   end
@@ -145,6 +157,8 @@ defmodule MaveMetricsWeb.SessionChannel do
       session_id: session_id,
       video_id: video_id
     })
+
+    Presence.untrack(self(), "video:#{video_id}", "#{session_id}")
   end
 
   defp on_disconnect(_, _) do

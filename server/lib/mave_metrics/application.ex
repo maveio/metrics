@@ -18,6 +18,8 @@ defmodule MaveMetrics.Application do
       {Task.Supervisor, name: MaveMetrics.TaskSupervisor},
       # Start the PubSub system
       {Phoenix.PubSub, name: MaveMetrics.PubSub},
+      # Presence
+      MaveMetricsWeb.Presence,
       # Start Finch
       {Finch, name: MaveMetrics.Finch},
       # Start cluster

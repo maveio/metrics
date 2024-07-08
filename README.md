@@ -115,6 +115,18 @@ An example response:
 }
 ```
 
+### `/api/v1/watching` (POST or GET)
+
+Watching is a very simple request to determine how many people are currently watching a video. You can specify the video(s) by using the identifier or by querying for metadata.
+
+The response will show you how many viewers are currently watching your request, here's an example response:
+
+```json
+{
+  "watching": 231
+}
+```
+
 ### `/api/v1/sources` (POST or GET)
 
 Retrieve the number of plays per source using the video's `identifier` and/or `query` for metadata. A source refers to the location where your video is placed, which can be particularly useful when embedding the same video across multiple pages/sites.

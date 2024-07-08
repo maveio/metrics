@@ -6,10 +6,25 @@ defmodule MaveMetrics.API do
   import Ecto.Query, warn: false
   import EctoCase
   alias MaveMetrics.{Repo, Video, Duration}
+  alias MaveMetricsWeb.Presence
 
   @default_timeframe "7 days"
   @default_interval "12 months"
   @default_minimum_watch_seconds 1
+
+  def get_watching(%{"video" => query}) do
+    video_ids =
+      Video
+      |> where([v], fragment("? @> ?", v.metadata, ^query))
+      |> select([v], v.id)
+      |> Repo.all()
+
+    if video_ids == [] do
+      0
+    else
+      video_ids |> Enum.map(&map_size(Presence.list("video:#{&1}"))) |> Enum.sum()
+    end
+  end
 
   def get_plays(%{"video" => query}, interval, timeframe, minimum_watch_seconds) do
     interval = interval || @default_interval
