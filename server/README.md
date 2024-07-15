@@ -11,4 +11,4 @@
 
 # video metrics
 
-See main README.md for more information
+See [main README.md](https://github.com/maveio/metrics/blob/main/README.md#server-1) for more information
