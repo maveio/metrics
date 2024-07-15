@@ -79,6 +79,10 @@ jobs:
         uses: Ilshidur/action-discord@master
 
       - name: Create and push new tag
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git tag ${{ env.NEW_TAG }}
-          git push origin ${{ env.NEW_TAG }} -u mave-bot:${{ secrets.PUSH_TO_PROTECTED_BRANCH }}
+          GIT_USER_NAME=$(git config --get user.name)
+          echo "Using GitHub user: $GIT_USER_NAME"
+          git push https://$GIT_USER_NAME:${{ secrets.GITHUB_TOKEN }}@github.com/maveio/metrics.git --tags
