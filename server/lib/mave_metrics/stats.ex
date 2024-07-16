@@ -71,6 +71,7 @@ defmodule MaveMetrics.Stats do
       |> Enum.reject(&(&1.type == :disconnect))
       |> Enum.map(&float_video_time/1)
       |> Enum.sort_by(& &1.timestamp)
+      |> Enum.map(&Map.delete(&1, :duration))
 
     {_, created_events} = Repo.insert_all(Event, regular, returning: true)
 
@@ -82,7 +83,8 @@ defmodule MaveMetrics.Stats do
       |> Enum.filter(&(not is_nil(&1)))
       |> Enum.map(&float_video_time/1)
 
-    {_, created_pauses} = Repo.insert_all(Event, disconnects, returning: true)
+    {_, created_pauses} =
+      Repo.insert_all(Event, Enum.map(disconnects, &Map.delete(&1, :duration)), returning: true)
 
     created_events =
       if created_pauses do
@@ -95,7 +97,12 @@ defmodule MaveMetrics.Stats do
     Repo.insert_all(Duration, durations)
   end
 
-  def finish_session(%{timestamp: timestamp, session_id: session_id, video_id: video_id}) do
+  def finish_session(%{
+        timestamp: timestamp,
+        session_id: session_id,
+        video_id: video_id,
+        duration: duration
+      }) do
     # check if last event with session_id is a pause event, otherwise get the last play event
     last_event =
       Event
@@ -107,6 +114,17 @@ defmodule MaveMetrics.Stats do
     if not is_nil(last_event) and last_event.type == :play do
       # no pause event, create a pause event
       elapsed_time = DateTime.diff(timestamp, last_event.timestamp, :microsecond) / 1_000_000
+
+      # elapsed_time can't be negative
+      elapsed_time = if elapsed_time < 0, do: 0, else: elapsed_time
+
+      dbg(elapsed_time)
+      dbg(duration)
+
+      # elapsed_time can't be bigger than duration of video
+      elapsed_time =
+        if not is_nil(duration) and elapsed_time > duration, do: duration, else: elapsed_time
+
       to = last_event.video_time + elapsed_time
 
       %{

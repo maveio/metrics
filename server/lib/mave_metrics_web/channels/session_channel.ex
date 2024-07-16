@@ -42,10 +42,11 @@ defmodule MaveMetricsWeb.SessionChannel do
     {:error, %{reason: "missing parameters and/or invalid host"}}
   end
 
+  # initial play event
   @impl true
   def handle_in(
         "event",
-        %{"name" => "play", "from" => video_time},
+        %{"name" => "play", "from" => video_time} = params,
         %{
           assigns: %{
             session_attrs: session_attrs,
@@ -67,7 +68,8 @@ defmodule MaveMetricsWeb.SessionChannel do
       type: :play,
       video_time: video_time,
       session_id: session.id,
-      video_id: video.id
+      video_id: video.id,
+      duration: params["duration"]
     })
 
     Presence.track(self(), "video:#{video.id}", "#{session.id}", %{})
@@ -80,6 +82,7 @@ defmodule MaveMetricsWeb.SessionChannel do
       |> assign(:key, nil)
       |> assign(:session_id, session.id)
       |> assign(:video_id, video.id)
+      |> assign(:duration, params["duration"])
       |> monitor(self())
     }
   end
@@ -87,7 +90,7 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "play", "from" => video_time},
+        %{"name" => "play", "from" => video_time} = params,
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       )
       when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) do
@@ -97,7 +100,9 @@ defmodule MaveMetricsWeb.SessionChannel do
       type: :play,
       video_time: video_time,
       session_id: session_id,
-      video_id: video_id
+      video_id: video_id,
+      timestamp: DateTime.utc_now(),
+      duration: params["duration"]
     })
 
     Presence.track(self(), "video:#{video_id}", "#{session_id}", %{})
@@ -108,7 +113,7 @@ defmodule MaveMetricsWeb.SessionChannel do
   @impl true
   def handle_in(
         "event",
-        %{"name" => "pause", "to" => video_time},
+        %{"name" => "pause", "to" => video_time} = params,
         %{assigns: %{session_id: session_id, video_id: video_id}} = socket
       )
       when not is_nil(session_id) and not is_nil(video_id) and not is_nil(video_time) do
@@ -118,7 +123,9 @@ defmodule MaveMetricsWeb.SessionChannel do
       type: :pause,
       video_time: video_time,
       session_id: session_id,
-      video_id: video_id
+      video_id: video_id,
+      timestamp: DateTime.utc_now(),
+      duration: params["duration"]
     })
 
     Presence.untrack(self(), "video:#{video_id}", "#{session_id}")
@@ -132,25 +139,31 @@ defmodule MaveMetricsWeb.SessionChannel do
   end
 
   # https://github.com/phoenixframework/phoenix/issues/3844
-  defp monitor(%{assigns: %{session_id: session_id, video_id: video_id}} = socket, pid) do
+  defp monitor(
+         %{assigns: %{session_id: session_id, video_id: video_id, duration: duration}} = socket,
+         pid
+       ) do
     Task.Supervisor.start_child(MaveMetrics.TaskSupervisor, fn ->
       Process.flag(:trap_exit, true)
       ref = Process.monitor(pid)
 
       receive do
         {:DOWN, ^ref, :process, _pid, _reason} ->
-          on_disconnect(session_id, video_id)
+          on_disconnect(session_id, video_id, duration)
       end
     end)
 
     socket
   end
 
-  defp on_disconnect(session_id, video_id) when not is_nil(session_id) and not is_nil(video_id) do
+  defp on_disconnect(session_id, video_id, duration)
+       when not is_nil(session_id) and not is_nil(video_id) do
     Pipeline.add(%{
       type: :disconnect,
       session_id: session_id,
-      video_id: video_id
+      video_id: video_id,
+      timestamp: DateTime.utc_now(),
+      duration: duration
     })
 
     Presence.untrack(self(), "video:#{video_id}", "#{session_id}")

@@ -94,14 +94,11 @@ export class Metrics {
   );
 
   /**
-     * The `Metrics` class is the core of Metrics used for monitoring video events.
-     * @param querySelectorable - A valid query selector to a HTMLVideoElement.
-     * @param metadata - Video metadata to identify the video.
-     */
-  public constructor(
-    querySelectorable: string,
-    metadata: object,
-  );
+   * The `Metrics` class is the core of Metrics used for monitoring video events.
+   * @param querySelectorable - A valid query selector to a HTMLVideoElement.
+   * @param metadata - Video metadata to identify the video.
+   */
+  public constructor(querySelectorable: string, metadata: object);
 
   /**
    * The `Metrics` class is the core of Metrics used for monitoring video events.
@@ -118,10 +115,7 @@ export class Metrics {
    * @param hls - A valid hls.js instance.
    * @param metadata - Video metadata to identify the video.
    */
-  public constructor(
-    hls: Hls,
-    metadata: object,
-  );
+  public constructor(hls: Hls, metadata: object);
 
   public constructor(...args: Array<unknown>) {
     if (args.length <= 1) {
@@ -174,7 +168,7 @@ export class Metrics {
       ? document.querySelector(this.querySelectorable)
       : this.hls?.media;
 
-    if(this.#monitoring) return this;
+    if (this.#monitoring) return this;
 
     if (video || this.#video) {
       if (!this.#video) this.#video = video as HTMLVideoElement;
@@ -193,7 +187,7 @@ export class Metrics {
   }
 
   demonitor(): void {
-    if(!this.#monitoring) return;
+    if (!this.#monitoring) return;
 
     this.#resizeObserver?.unobserve(this.#video);
     this.#unrecordSession();
@@ -227,8 +221,10 @@ export class Metrics {
   #recordEvent(event: Event) {
     const params = {
       name: event.type,
-      timestamp: new Date().getTime(),
+      duration: this.#video?.duration,
     };
+
+    console.log(params);
 
     switch (event.type) {
       case NativeEvents.PLAYING:
@@ -242,7 +238,7 @@ export class Metrics {
             ...params,
             name: 'play',
             // remove time shifting (play > playing)
-            from: this.#video?.currentTime < 1 ? 0 : this.#currentTime()
+            from: this.#video?.currentTime < 1 ? 0 : this.#currentTime(),
           },
           this.timeout
         );
@@ -252,7 +248,7 @@ export class Metrics {
         break;
       case NativeEvents.PAUSE:
         if (this.#video?.readyState === 4) {
-          if(this.#lastEventType === 'pause') break;
+          if (this.#lastEventType === 'pause') break;
           this.#session?.push(
             'event',
             {
@@ -273,7 +269,11 @@ export class Metrics {
           break;
         }
 
-        if (this.#lastTime && !this.#video.paused && Math.abs(this.#video?.currentTime - this.#lastTime) > 0.5) {
+        if (
+          this.#lastTime &&
+          !this.#video.paused &&
+          Math.abs(this.#video?.currentTime - this.#lastTime) > 0.5
+        ) {
           if (this.#lastEventType === 'pause') break;
           this.#session?.push(
             'event',
@@ -291,7 +291,6 @@ export class Metrics {
         this.#lastTime = this.#video?.currentTime;
         break;
     }
-
   }
 
   #currentTime() {
