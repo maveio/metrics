@@ -171,48 +171,52 @@ defmodule MaveMetrics.API do
   end
 
   def query_individual_video_engagement(video_ids, timeframe, interval) do
-    Duration
-    |> where([d], d.video_id in ^video_ids)
-    |> apply_timeframe(timeframe)
-    |> join(
-      :inner_lateral,
-      [d],
-      gs in fragment(
-        "SELECT generate_series(lower(?), upper(?) - 1) AS second",
-        d.watched_seconds,
-        d.watched_seconds
-      ),
-      on: true
-    )
-    |> group_by([d, gs], [
-      fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
-      gs.second
-    ])
-    |> order_by([d, gs],
-      asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
-      asc: gs.second
-    )
-    |> select([d, gs], %{
-      interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
-      second: gs.second,
-      views: count()
-    })
-    |> Repo.all()
-    |> nest_engagement_data_by_interval()
-  end
+    bucket_query =
+      Duration
+      |> where([d], d.video_id in ^video_ids)
+      |> apply_timeframe(timeframe)
+      |> join(
+        :inner_lateral,
+        [d],
+        gs in fragment(
+          "SELECT generate_series(lower(?), upper(?) - 1) AS second",
+          d.watched_seconds,
+          d.watched_seconds
+        ),
+        on: true
+      )
+      |> group_by([d, gs], [
+        fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        gs.second
+      ])
+      |> order_by([d, gs],
+        asc: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        asc: gs.second
+      )
+      |> select([d, gs], %{
+        interval: fragment(~s|time_bucket('?', ?)|, literal(^interval), d.timestamp),
+        second: gs.second,
+        views: count()
+      })
+      |> subquery()
 
-  defp nest_engagement_data_by_interval(results) do
-    results
-    |> Enum.group_by(& &1.interval)
-    |> Enum.map(fn {interval, engagements} ->
-      %{
-        interval: interval,
-        per_second:
-          Enum.map(engagements, fn %{second: second, views: views} ->
-            %{second: second, views: views}
-          end)
-      }
-    end)
+    query =
+      from(e in bucket_query,
+        group_by: e.interval,
+        order_by: e.interval,
+        select: %{
+          interval: e.interval,
+          per_second:
+            fragment(
+              "json_agg(json_build_object('second', ?, 'views', ?) ORDER BY ?)",
+              e.second,
+              e.views,
+              e.second
+            )
+        }
+      )
+
+    Repo.all(query)
   end
 
   defp apply_timeframe(query, timeframe, date_field \\ :timestamp)
