@@ -118,9 +118,6 @@ defmodule MaveMetrics.Stats do
       # elapsed_time can't be negative
       elapsed_time = if elapsed_time < 0, do: 0, else: elapsed_time
 
-      dbg(elapsed_time)
-      dbg(duration)
-
       # elapsed_time can't be bigger than duration of video
       elapsed_time =
         if not is_nil(duration) and elapsed_time > duration, do: duration, else: elapsed_time

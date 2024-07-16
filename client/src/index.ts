@@ -224,8 +224,6 @@ export class Metrics {
       duration: this.#video?.duration,
     };
 
-    console.log(params);
-
     switch (event.type) {
       case NativeEvents.PLAYING:
         if (this.#lastEventType === 'play') {
