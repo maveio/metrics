@@ -8,6 +8,11 @@ defmodule MaveMetrics.API do
   alias MaveMetrics.{Repo, Video, Duration}
   alias MaveMetricsWeb.Presence
 
+  use Nebulex.Caching
+  alias MaveMetrics.PartitionedCache, as: Cache
+
+  @ttl :timer.hours(90 * 24)
+
   @default_timeframe "7 days"
   @default_interval "12 months"
   @default_minimum_watch_seconds 1
@@ -80,6 +85,32 @@ defmodule MaveMetrics.API do
   end
 
   def query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval) do
+    if timeframe_excludes_today?(timeframe) do
+      cached_query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval)
+    else
+      uncached_query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval)
+    end
+  end
+
+  @decorate cacheable(
+              cache: Cache,
+              key: {video_ids, timeframe, min_watched_seconds, interval},
+              opts: [ttl: @ttl]
+            )
+  defp cached_query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval) do
+    execute_query(video_ids, timeframe, min_watched_seconds, interval)
+  end
+
+  defp uncached_query_aggregated_video_metrics(
+         video_ids,
+         timeframe,
+         min_watched_seconds,
+         interval
+       ) do
+    execute_query(video_ids, timeframe, min_watched_seconds, interval)
+  end
+
+  defp execute_query(video_ids, timeframe, min_watched_seconds, interval) do
     Duration
     |> apply_timeframe(timeframe)
     |> where([d], d.video_id in ^video_ids)
@@ -254,4 +285,25 @@ defmodule MaveMetrics.API do
       field(d, ^date_field) >= fragment(~s|now() - interval '?'|, literal(^timeframe))
     )
   end
+
+  defp should_cache?({video_ids, timeframe, min_watched_seconds, interval}) do
+    timeframe_excludes_today?(timeframe)
+  end
+
+  defp timeframe_excludes_today?(%{"from" => from_timestamp, "to" => to_timestamp}) do
+    today = Date.utc_today()
+
+    from_date =
+      DateTime.from_unix!(from_timestamp, :second)
+      |> DateTime.to_date()
+
+    to_date =
+      DateTime.from_unix!(to_timestamp, :second)
+      |> DateTime.to_date()
+
+    # Return true if today is NOT between the "from" and "to" dates (i.e. timeframe excludes today)
+    not (from_date <= today and to_date >= today)
+  end
+
+  defp timeframe_excludes_today?(_other), do: true
 end

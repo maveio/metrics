@@ -62,7 +62,8 @@ defmodule MaveMetrics.MixProject do
       {:decorator, "~> 1.4"},
       {:dns_cluster, "~> 0.1.1"},
       {:timex, "~> 3.7"},
-      {:pg_ranges, "~> 1.1"}
+      {:pg_ranges, "~> 1.1"},
+      {:appsignal_phoenix, "~> 2.3.9"}
     ]
   end
 
