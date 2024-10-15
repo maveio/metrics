@@ -21,6 +21,8 @@ RUN mix deps.get --only $MIX_ENV \
 
 COPY config/config.exs config/${MIX_ENV}.exs config/
 
+COPY ./server/config /app/config
+
 RUN mix deps.compile
 
 COPY priv priv
