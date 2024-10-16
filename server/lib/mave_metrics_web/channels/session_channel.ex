@@ -1,11 +1,9 @@
 defmodule MaveMetricsWeb.SessionChannel do
   use MaveMetricsWeb, :channel
-  use Appsignal.Instrumentation.Decorators
   alias MaveMetricsWeb.Presence
 
   alias MaveMetrics.{Stats, Keys, Pipeline}
 
-  @decorate channel_action()
   def join(
         "session:" <> _id,
         %{"metadata" => metadata, "key" => key} = params,
@@ -38,13 +36,11 @@ defmodule MaveMetricsWeb.SessionChannel do
     end
   end
 
-  @decorate channel_action()
   def join(_session, _params, _socket) do
     {:error, %{reason: "missing parameters and/or invalid host"}}
   end
 
   # initial play event
-  @decorate channel_action()
   def handle_in(
         "event",
         %{"name" => "play", "from" => video_time} = params,
@@ -88,7 +84,6 @@ defmodule MaveMetricsWeb.SessionChannel do
     }
   end
 
-  @decorate channel_action()
   def handle_in(
         "event",
         %{"name" => "play", "from" => video_time} = params,
@@ -111,7 +106,6 @@ defmodule MaveMetricsWeb.SessionChannel do
     {:noreply, socket}
   end
 
-  @decorate channel_action()
   def handle_in(
         "event",
         %{"name" => "pause", "to" => video_time} = params,
@@ -134,7 +128,6 @@ defmodule MaveMetricsWeb.SessionChannel do
     {:noreply, socket}
   end
 
-  @decorate channel_action()
   def handle_in("event", _params, socket) do
     {:noreply, socket}
   end
