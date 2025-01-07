@@ -37,7 +37,7 @@ This is a monorepo for both server and client library. The server is written in 
 </div>
 
 <p>
-<img src="https://github.com/maveio/metrics/assets/238946/08d16cf5-32b1-47c6-9ec3-fbd094fb7df3"  alt="example" style="width: 50%;">
+<img src="https://www.mave.io/images/blog/data.png"  alt="example" style="width: 50%;">
 
 _This is not part of this repo, but an example what you can build with it (this is the data page on [mave.io](https://mave.io))_
 
