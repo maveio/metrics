@@ -5,7 +5,7 @@ defmodule MaveMetrics.API do
 
   import Ecto.Query, warn: false
   import EctoCase
-  alias MaveMetrics.{Repo, Video, Duration}
+  alias MaveMetrics.{Repo, Video, Duration, Key}
   alias MaveMetricsWeb.Presence
 
   use Nebulex.Caching
@@ -18,12 +18,18 @@ defmodule MaveMetrics.API do
   @default_minimum_watch_seconds 1
 
   def get_watching(%{"video" => query}) do
-    video_ids =
-      Video
-      |> where([v], fragment("? @> ?", v.metadata, ^query))
-      |> select([v], v.id)
-      |> Repo.all()
+    videos_for_metadata(query)
+    |> get_watching_by_videos()
+  end
 
+  def get_watching(%{"key" => key}) do
+    videos_for_key(key)
+    |> get_watching_by_videos()
+  end
+
+  def get_watching(_), do: 0
+
+  defp get_watching_by_videos(video_ids) do
     if video_ids == [] do
       0
     else
@@ -36,12 +42,22 @@ defmodule MaveMetrics.API do
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    video_ids =
-      Video
-      |> where([v], fragment("? @> ?", v.metadata, ^query))
-      |> select([v], v.id)
-      |> Repo.all()
+    videos_for_metadata(query)
+    |> get_plays_by_videos(interval, timeframe, minimum_watch_seconds)
+  end
 
+  def get_plays(%{"key" => key}, interval, timeframe, minimum_watch_seconds) do
+    interval = interval || @default_interval
+    timeframe = timeframe || @default_timeframe
+    minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
+
+    videos_for_key(key)
+    |> get_plays_by_videos(interval, timeframe, minimum_watch_seconds)
+  end
+
+  def get_plays(_), do: []
+
+  defp get_plays_by_videos(video_ids, interval, timeframe, minimum_watch_seconds) do
     if video_ids == [] do
       []
     else
@@ -54,12 +70,22 @@ defmodule MaveMetrics.API do
     timeframe = timeframe || @default_timeframe
     minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
 
-    video_ids =
-      Video
-      |> where([v], fragment("? @> ?", v.metadata, ^query))
-      |> select([v], v.id)
-      |> Repo.all()
+    videos_for_metadata(query)
+    |> get_sources_by_videos(interval, timeframe, minimum_watch_seconds)
+  end
 
+  def get_sources(%{"key" => key}, interval, timeframe, minimum_watch_seconds) do
+    interval = interval || @default_interval
+    timeframe = timeframe || @default_timeframe
+    minimum_watch_seconds = minimum_watch_seconds || @default_minimum_watch_seconds
+
+    videos_for_key(key)
+    |> get_sources_by_videos(interval, timeframe, minimum_watch_seconds)
+  end
+
+  def get_sources(_), do: []
+
+  defp get_sources_by_videos(video_ids, interval, timeframe, minimum_watch_seconds) do
     if video_ids == nil or video_ids == [] do
       []
     else
@@ -90,6 +116,21 @@ defmodule MaveMetrics.API do
     else
       uncached_query_aggregated_video_metrics(video_ids, timeframe, min_watched_seconds, interval)
     end
+  end
+
+  defp videos_for_metadata(query) do
+    Video
+    |> where([v], fragment("? @> ?", v.metadata, ^query))
+    |> select([v], v.id)
+    |> Repo.all()
+  end
+
+  defp videos_for_key(key) do
+    Video
+    |> join(:left, [v], k in Key, on: k.key == ^key)
+    |> where([v, k], v.key_id == k.id)
+    |> select([v], v.id)
+    |> Repo.all()
   end
 
   @decorate cacheable(

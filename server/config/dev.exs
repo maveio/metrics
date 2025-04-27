@@ -2,10 +2,13 @@ import Config
 
 # Configure your database
 config :mave_metrics, MaveMetrics.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "mave-db.internal",
-  database: "mave_data_dev",
+  username: System.get_env("PGUSER") || "postgres",
+  password: System.get_env("PGPASSWORD") || "postgres",
+  database: System.get_env("PGDATABASE") || "mave_data_dev",
+  hostname: System.get_env("PGHOST") || "localhost",
+  port: System.get_env("PGPORT") || "5432",
+  # url: "",
+  # socket_options: [:inet6],
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
   pool_size: 20

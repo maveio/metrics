@@ -55,7 +55,7 @@ defmodule MaveMetrics.MixProject do
       {:timescale, "~> 0.1.1"},
       {:cors_plug, "~> 3.0"},
       {:mix_test_watch, "~> 1.1", only: :dev, runtime: false},
-      {:ua_inspector, "~> 3.9"},
+      {:ua_inspector, "~> 3.10"},
       {:redirect, "~> 0.4.0"},
       {:nebulex, "~> 2.6"},
       {:shards, "~> 1.1"},

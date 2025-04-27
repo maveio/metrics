@@ -73,9 +73,37 @@ METRICS_PASSWORD=password
 
 ### `/api/v1/plays` (POST or GET)
 
-Retrieve the number of plays and associated data using the video's `identifier` and/or `query` for metadata.
+Retrieve the number of plays and associated data using the video's metadata with a `query` parameter or using a `key` to get data for all videos associated with that key.
 
 The data is grouped into time buckets using the specified `interval`, such as `1 day`, within a given `timeframe`, for example, `1 month`. A play is defined based on a `minimum_watch_seconds` threshold, such as `3 seconds`.
+
+Example POST request using video metadata query:
+
+```json
+{
+  "query": {
+    "video": {
+      "vid": 1234
+    }
+  },
+  "interval": "1 day",
+  "timeframe": "1 month",
+  "minimum_watch_seconds": 3
+}
+```
+
+Alternative using key (returns data for all videos associated with this key):
+
+```json
+{
+  "query": {
+    "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+  },
+  "interval": "1 day",
+  "timeframe": "1 month",
+  "minimum_watch_seconds": 3
+}
+```
 
 An example response:
 
@@ -117,7 +145,29 @@ An example response:
 
 ### `/api/v1/watching` (POST or GET)
 
-Watching is a very simple request to determine how many people are currently watching a video. You can specify the video(s) by using the identifier or by querying for metadata.
+Watching is a very simple request to determine how many people are currently watching a video. You can specify the video(s) by using a specific metadata `query` or use a `key` to get real-time viewer counts for all videos associated with that key.
+
+Example POST request using video metadata:
+
+```json
+{
+  "query": {
+    "video": {
+      "vid": 1234
+    }
+  }
+}
+```
+
+Alternative using key (returns data for all videos associated with this key):
+
+```json
+{
+  "query": {
+    "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+  }
+}
+```
 
 The response will show you how many viewers are currently watching your request, here's an example response:
 
@@ -129,7 +179,35 @@ The response will show you how many viewers are currently watching your request,
 
 ### `/api/v1/sources` (POST or GET)
 
-Retrieve the number of plays per source using the video's `identifier` and/or `query` for metadata. A source refers to the location where your video is placed, which can be particularly useful when embedding the same video across multiple pages/sites.
+Retrieve the number of plays per source using a metadata `query` to find specific videos or a `key` to get source data for all videos associated with that key. A source refers to the location where your video is placed, which can be particularly useful when embedding the same video across multiple pages/sites.
+
+Example POST request using video metadata:
+
+```json
+{
+  "query": {
+    "video": {
+      "vid": 1234
+    }
+  },
+  "interval": "1 day",
+  "timeframe": "1 month",
+  "minimum_watch_seconds": 3
+}
+```
+
+Alternative using key (returns data for all videos associated with this key):
+
+```json
+{
+  "query": {
+    "key": "HDsj3NfKQTNwn5Ix9g+cfQ=="
+  },
+  "interval": "1 day",
+  "timeframe": "1 month",
+  "minimum_watch_seconds": 3
+}
+```
 
 The data is grouped into time buckets with an `interval`, such as `1 day`, over a specified `timeframe`, for example, `1 month`. A play is defined by a `minimum_watch_seconds` threshold, such as `3 seconds`.
 
@@ -159,7 +237,23 @@ An example response:
 
 ### `/api/v1/engagement` (POST or GET)
 
-Engagement is used to determine which portion of a video has been watched, employing the same technique as the plays request. To retrieve engagement data, you can specify the video(s) by using the identifier or by querying for metadata. Set a timeframe to define the desired period, and indicate the number of ranges as an integer to segment the play duration of the sessions.
+Engagement is used to determine which portion of a video has been watched. To retrieve engagement data, you can specify videos using a metadata `query`. Set a timeframe to define the desired period, and indicate the number of ranges as an integer to segment the play duration of the sessions.
+
+**Note**: Unlike other endpoints, engagement does not support using a `key` parameter.
+
+Example POST request using video metadata:
+
+```json
+{
+  "query": {
+    "video": {
+      "vid": 1234
+    }
+  },
+  "interval": "1 month",
+  "timeframe": "3 months"
+}
+```
 
 The response will show you which seconds of the video contains a view, here's an example response:
 
@@ -198,6 +292,12 @@ The response will show you which seconds of the video contains a view, here's an
 ### `/api/v1/keys` (POST)
 
 Create a new API key to use with the client-side library.
+
+Example POST request (no body required):
+
+```json
+{}
+```
 
 An example response:
 
