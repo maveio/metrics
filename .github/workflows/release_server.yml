@@ -80,9 +80,9 @@ jobs:
 
       - name: Create and push new tag
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.TOKEN_GITHUB }}
         run: |
           git tag ${{ env.NEW_TAG }}
           GIT_USER_NAME=$(git config --get user.name)
           echo "Using GitHub user: $GIT_USER_NAME"
-          git push https://$GIT_USER_NAME:${{ secrets.GITHUB_TOKEN }}@github.com/maveio/metrics.git --tags
+          git push https://$GIT_USER_NAME:${{ secrets.TOKEN_GITHUB }}@github.com/maveio/metrics.git --tags
